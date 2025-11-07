@@ -12,6 +12,7 @@ from components.text_input import TextInputComponent
 from components.language_selector import LanguageSelectorComponent
 from components.voice_selector import VoiceSelectorComponent
 from components.expression_controls import ExpressionControlsComponent
+from components.loading_screen import LoadingScreen
 
 # Import features
 from features.generate import tts_generator
@@ -40,6 +41,9 @@ class ChatterboxApp:
         app_state.subscribe(self._on_state_change)
         
         print("✅ Chatterbox TTS Desktop App Ready!")
+        
+        # Show loading screen and initialize TTS models
+        self.root.after(100, self._initialize_tts_models)
     
     def _setup_menu(self):
         """Create menu bar"""
@@ -145,6 +149,27 @@ class ChatterboxApp:
             title += " *"
         self.root.title(title)
     
+    # Initialization
+    def _initialize_tts_models(self):
+        """Initialize TTS models with loading screen"""
+        # Create and show loading screen
+        loading_screen = LoadingScreen(self.root)
+        loading_screen.show()
+        
+        # Initialize models
+        success = tts_generator.initialize(loading_screen)
+        
+        # Close loading screen
+        if loading_screen.window and loading_screen.window.winfo_exists():
+            self.root.after(500, loading_screen.close)  # Small delay to show completion
+        
+        if not success:
+            if not loading_screen.is_stopped():
+                messagebox.showerror(
+                    "Initialization Error",
+                    "Failed to load TTS models. Some features may not work."
+                )
+    
     # Event handlers
     def _generate_audio(self):
         text = self.text_input.get_text()
@@ -162,7 +187,13 @@ class ChatterboxApp:
             output_path = Path(self.output_folder_var.get()) / filename
             ensure_folder_exists(output_path.parent)
             
-            result_path = tts_generator.generate_audio(text, voice_config, expression_config, output_path)
+            result_path = tts_generator.generate_audio(
+                text, 
+                voice_config, 
+                expression_config, 
+                output_path,
+                app_state.language_code
+            )
             
             if result_path:
                 app_state.update(generated_audio_path=result_path)
