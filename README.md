@@ -223,6 +223,7 @@ See `PORTABLE_BUILD_GUIDE.md` for building distribution package.
 
 ## 🔗 Resources
 
+- [Chatterbox TTS GitHub Repository](https://github.com/resemble-ai/chatterbox) - Official source code and documentation
 - [Chatterbox TTS on PyPI](https://pypi.org/project/chatterbox-tts/)
 - [Python 3.11 Download](https://www.python.org/downloads/)
 - [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
