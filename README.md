@@ -54,29 +54,25 @@ A Text-to-Speech project using Chatterbox TTS for Pixuu's Pixel Adventure game.
 The setup process installs the following main packages:
 
 ### Core TTS Engine
-- **chatterbox-tts** (0.1.4) - Main text-to-speech engine
-- **torch** (2.6.0) - PyTorch for deep learning
-- **torchaudio** (2.6.0) - Audio processing
+- **chatterbox-tts** (0.1.4) - Main text-to-speech engine with multilingual support (23 languages)
+- **torch** (2.5.1+cu121) - PyTorch with CUDA 12.1 support for GPU acceleration
+- **torchaudio** (2.5.1+cu121) - Audio processing with GPU support
 - **transformers** (4.46.3) - Hugging Face transformers
 - **diffusers** (0.29.0) - Diffusion models
 
-### GUI & Interface
-- **gradio** (5.44.1) - Web-based GUI framework
-- **fastapi** - Web framework backend
-- **uvicorn** - ASGI server
+### Desktop GUI
+- **tkinter** (built-in) - Native desktop interface with custom components
 
-### Audio Processing
-- **librosa** (0.11.0) - Audio analysis and processing
-- **soundfile** - Audio I/O operations
-- **pydub** - Audio manipulation and export
+### Audio Processing & Playback
+- **pygame** - Audio playback and scrubbing control
+- **torchaudio** - Audio I/O and WAV file operations
+- **hf_xet** - Faster HuggingFace model downloads
 
-### Utilities
-- **python-dateutil** - Date/time formatting for file naming
-- **pyyaml** - Configuration file handling
-- **tqdm** - Progress bars
-- **requests** - HTTP requests
+### Performance
+- **CUDA Support** - GPU acceleration for 5-10x faster generation (2-10 seconds vs 10-60 seconds on CPU)
+- **Device Selection** - Choose between CPU (stable) or GPU (fast) at startup
 
-Total installation size: **~2.5-3 GB**
+Total installation size: **~3-4 GB** (including CUDA libraries)
 
 ### Development Tools (Optional)
 Install with: `pip install -r requirements-dev.txt`
@@ -98,12 +94,25 @@ Install with: `pip install -r requirements-dev.txt`
 ### Issue: "ModuleNotFoundError: No module named 'numpy'"
 **Solution:** This was resolved by installing numpy before pkuseg. The requirements.txt handles this automatically.
 
+### Issue: GPU not being used / "CUDA not available"
+**Solution:** Install PyTorch with CUDA support:
+```powershell
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
+This installs PyTorch with CUDA 12.1 support for GPU acceleration.
+
+### Issue: "RuntimeError: Attempting to deserialize object on a CUDA device"
+**Solution:** Already handled automatically - the app monkey-patches `torch.load` to map CUDA tensors to CPU when needed.
+
 ### Issue: Virtual environment not activating
 **Solution:** 
 ```powershell
 # If you see an execution policy error
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
+
+### Issue: Loading screen or device selector not showing
+**Solution:** The windows show automatically at startup. Check if they're minimized or behind other windows. Press Alt+Tab to switch between windows.
 
 ## 📁 Project Structure
 
@@ -112,8 +121,26 @@ chatterbox-codebase/
 ├── .venv/                  # Virtual environment (DO NOT commit)
 ├── .git/                   # Git repository
 ├── src/                    # Source code
-│   └── main.py            # Main GUI application
-├── outputs/                # Generated audio files
+│   ├── main.py            # Main application entry point
+│   ├── components/         # Reusable UI components (React-style)
+│   │   ├── device_selector.py      # GPU/CPU selection dialog
+│   │   ├── dropdown.py             # Reusable dropdown component
+│   │   ├── text_input.py           # Text input area
+│   │   ├── language_selector.py    # Language dropdown (23 languages)
+│   │   ├── voice_selector.py       # Voice selection with filters
+│   │   ├── expression_controls.py  # Expression/emotion controls
+│   │   ├── loading_screen.py       # Model loading screen with progress
+│   │   └── audio_player.py         # Built-in audio player with scrubber
+│   ├── features/           # Core functionality
+│   │   ├── generate.py    # TTS generation with GPU/CPU support
+│   │   ├── project.py     # Project save/load
+│   │   └── export.py      # Audio export
+│   ├── utils/              # Utility functions
+│   │   ├── config.py      # Configuration constants
+│   │   └── file_utils.py  # File operations
+│   └── store/              # State management
+│       └── state.py       # Application state
+├── output/                 # Generated audio files (auto-created)
 ├── projects/               # Saved project files
 ├── reference_audio/        # Custom voice samples
 ├── .gitignore              # Git ignore file
@@ -184,14 +211,51 @@ The following directories are excluded from version control (too large):
 
 ## 🎯 Usage
 
-### For Developers (Current)
-```python
+### Running the Application
+```powershell
 # Activate virtual environment
-.venv\Scripts\activate
+.\.venv\Scripts\Activate.ps1
 
-# Run your application
+# Run the desktop application
 python src/main.py
 ```
+
+### Application Features
+
+#### 1. Device Selection (Startup)
+On first launch, choose your processing device:
+- **CPU (Recommended)** - Slower (10-60s) but more stable and reliable
+- **GPU** - Faster (2-10s) if you have NVIDIA GPU with CUDA support
+
+#### 2. Multilingual Support
+Generate audio in 23 languages:
+- English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese
+- Arabic, Danish, Dutch, Finnish, Greek, Hebrew, Hindi, Malay, Norwegian, Polish, Swedish, Swahili, Turkish
+
+#### 3. Voice Selection
+- **Predefined Voices** - Filter by Male/Female/All, searchable dropdown
+- **Custom Voice** - Upload reference audio for voice cloning
+- **Default**: Male voice (first available male voice)
+
+#### 4. Expression Controls
+- **Text Mode** - Describe emotion: "happy and energetic", "calm narrator", etc.
+- **Parameter Mode** - Fine-tune emotion, energy, speed, pitch, emphasis
+
+#### 5. Audio Generation
+- Real-time progress tracking
+- Disabled UI during generation to prevent errors
+- Device information display (CPU/GPU)
+
+#### 6. Built-in Audio Player
+- Play/Pause toggle button
+- Audio scrubber with millisecond precision (M:SS.mmm)
+- Click-to-seek and drag scrubber
+- Real-time position updates
+
+#### 7. Auto-Export
+- Saves to `output/` folder automatically
+- Smart naming: `audio_1.wav`, `audio_2.wav`, etc.
+- Temporary files cleaned up automatically
 
 ### For End Users (Portable Distribution)
 Once the portable version is built:
@@ -205,13 +269,34 @@ See `PORTABLE_BUILD_GUIDE.md` for building distribution package.
 
 ## 📝 Development History
 
-### Setup Process (November 7, 2025)
+### GPU Acceleration & Device Selection (November 7, 2025)
+1. ✅ Installed PyTorch with CUDA 12.1 support for GPU acceleration
+2. ✅ Added device selector dialog (CPU/GPU choice at startup)
+3. ✅ Implemented GPU detection and automatic optimization
+4. ✅ CPU marked as recommended (stable), GPU available for speed
+5. ✅ Auto-height device selector that fits content
 
+### UI/UX Improvements (November 7, 2025)
+1. ✅ Component-based architecture (React-style reusable components)
+2. ✅ Created reusable DropdownComponent for language and voice selection
+3. ✅ Searchable dropdown with 23 language support
+4. ✅ Loading screen with progress bar and force stop button
+5. ✅ Built-in audio player with millisecond scrubber and seeking
+6. ✅ Play/Pause combined into single toggle button
+7. ✅ Auto-export to output folder with smart naming
+8. ✅ Disabled UI during generation to prevent errors
+9. ✅ Honest progress messages (no fake progress bars)
+10. ✅ Expression defaults to "default" instead of showing placeholder
+11. ✅ Default voice changed to male (first available male voice)
+
+### Initial Setup Process (November 7, 2025)
 1. ✅ Created Python 3.11 virtual environment
 2. ✅ Resolved setuptools compatibility issues
 3. ✅ Installed Microsoft C++ Build Tools for pkuseg compilation
 4. ✅ Installed numpy first to resolve pkuseg build dependencies
 5. ✅ Successfully installed chatterbox-tts and all dependencies
+6. ✅ Implemented TTS functionality with English + multilingual models
+7. ✅ Created desktop GUI with Tkinter
 
 ## 🤝 Contributing
 

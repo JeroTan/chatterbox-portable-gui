@@ -6,6 +6,9 @@
 1. Install **Python 3.11** from https://www.python.org/downloads/
 2. Install **Microsoft C++ Build Tools** from https://visualstudio.microsoft.com/visual-cpp-build-tools/
    - Select "Desktop development with C++" workload
+3. **(Optional but Recommended)** If you have an NVIDIA GPU and want faster generation:
+   - Ensure you have updated GPU drivers
+   - PyTorch with CUDA support will be installed automatically
 
 ### Step 2: Clone Repository
 ```powershell
@@ -19,7 +22,8 @@ py -3.11 setup.py
 ```
 This will:
 - Create virtual environment
-- Install all dependencies (~3 GB, takes 8-15 minutes)
+- Install all dependencies (~3-4 GB, takes 8-15 minutes)
+- Install PyTorch with CUDA support for GPU acceleration
 - Set everything up automatically
 
 ### Step 4: Activate Environment
@@ -94,22 +98,48 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 - Make sure virtual environment is activated (you should see `(.venv)` in prompt)
 - Run: `.venv\Scripts\activate`
 
+### GPU not being used / slow generation
+- Install PyTorch with CUDA:
+```powershell
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
+- Restart the application and select GPU option
+
+### Device selector or loading screen not showing
+- Check if windows are minimized or behind other windows
+- Press Alt+Tab to switch between windows
+- Close with X button on device selector to exit app
+
 ---
 
-## 📝 Basic Usage Example
+## 📝 Basic Usage
 
-```python
-# Create a file: test_tts.py
-from chatterbox_tts import ChatterboxTTS
-
-# Your TTS code here
-print("Chatterbox TTS is ready!")
-```
-
-Run it:
+### Running the Application
 ```powershell
-python test_tts.py
+# Make sure virtual environment is activated
+.venv\Scripts\activate
+
+# Run the desktop app
+python src/main.py
 ```
+
+### First Launch
+1. **Device Selection** - Choose CPU (stable) or GPU (fast) for audio generation
+2. **Loading Screen** - Wait for models to load (first time takes longer)
+3. **Main Window** - Ready to generate audio!
+
+### Using the Application
+1. **Enter Text** - Type or paste text in the text input area
+2. **Select Language** - Choose from 23 supported languages
+3. **Choose Voice** - Select predefined voice (Male/Female) or upload custom reference audio
+4. **Set Expression** - Describe emotion ("happy", "calm", etc.) or use parameter controls
+5. **Generate** - Click "Generate Audio" button
+6. **Preview** - Use built-in player with scrubber to listen
+7. **Auto-Save** - Audio automatically saved to `output/` folder
+
+### Generation Speed
+- **CPU Mode**: 10-60 seconds (stable, recommended)
+- **GPU Mode**: 2-10 seconds (fast, requires NVIDIA GPU with CUDA)
 
 ---
 
@@ -157,8 +187,8 @@ pip install package-name
 
 ## 💾 Disk Space
 
-- Total installation: ~3 GB
-- Make sure you have at least 5 GB free space
+- Total installation: ~3-4 GB (including CUDA libraries)
+- Make sure you have at least 6 GB free space
 
 ---
 
