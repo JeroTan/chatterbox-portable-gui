@@ -1,0 +1,51 @@
+# Chatterbox TTS and Dependencies
+# Generated on November 7, 2025
+# Python 3.11 required
+
+# Main package
+chatterbox-tts==0.1.4
+
+# Core dependencies (these will be installed automatically with chatterbox-tts)
+# Listed here for reference and version pinning
+
+# Deep Learning
+torch==2.6.0
+torchaudio==2.6.0
+transformers==4.46.3
+diffusers==0.29.0
+safetensors==0.5.3
+
+# Audio Processing
+librosa==0.11.0
+soundfile>=0.12.1
+audioread>=2.1.9
+soxr>=0.3.2
+
+# Numerical & Scientific
+numpy>=1.24.0,<1.26.0
+scipy>=1.6.0
+scikit-learn>=1.1.0
+numba>=0.51.0
+
+# NLP & Tokenization
+s3tokenizer
+pkuseg==0.0.25
+pykakasi==2.3.0
+
+# Neural Network Components
+conformer==0.3.2
+resemble-perth==1.0.1
+einops>=0.6.1
+
+# Web Interface
+gradio==5.44.1
+fastapi>=0.115.2
+uvicorn>=0.14.0
+httpx>=0.24.1
+
+# Utilities
+tqdm>=4.27
+requests
+pyyaml>=5.0
+packaging
+filelock
