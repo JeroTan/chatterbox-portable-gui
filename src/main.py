@@ -6,13 +6,17 @@ Built with Tkinter for a native desktop experience
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from pathlib import Path
+import tempfile
+import threading
 
 # Import components
 from components.text_input import TextInputComponent
 from components.language_selector import LanguageSelectorComponent
 from components.voice_selector import VoiceSelectorComponent
 from components.expression_controls import ExpressionControlsComponent
+from components.device_selector import DeviceSelector
 from components.loading_screen import LoadingScreen
+from components.audio_player import AudioPlayerComponent
 
 # Import features
 from features.generate import tts_generator
@@ -34,6 +38,9 @@ class ChatterboxApp:
         self.root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         self.root.minsize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
         
+        # Hide main window initially
+        self.root.withdraw()
+        
         self._setup_menu()
         self._setup_ui()
         self._setup_keyboard_shortcuts()
@@ -42,8 +49,8 @@ class ChatterboxApp:
         
         print("✅ Chatterbox TTS Desktop App Ready!")
         
-        # Show loading screen and initialize TTS models
-        self.root.after(100, self._initialize_tts_models)
+        # Show device selector immediately after window is ready
+        self.root.after(100, self._show_device_selector)
     
     def _setup_menu(self):
         """Create menu bar"""
@@ -109,23 +116,16 @@ class ChatterboxApp:
         ttk.Button(output_frame, text="Browse...", command=self._browse_output_folder).pack(fill=tk.X)
         
         # Generate button
-        ttk.Button(right, text="🎤 Generate (Enter)", command=self._generate_audio).pack(fill=tk.X, pady=(0, 10))
+        self.generate_btn = ttk.Button(right, text="🎤 Generate (Enter)", command=self._generate_audio)
+        self.generate_btn.pack(fill=tk.X, pady=(0, 10))
         
-        # Audio status
-        audio_frame = ttk.LabelFrame(right, text="Generated Audio", padding="10")
-        audio_frame.pack(fill=tk.X, pady=(0, 10))
+        # Audio player (built-in preview)
+        self.audio_player = AudioPlayerComponent(right)
+        self.audio_player.frame.pack(fill=tk.X, pady=(0, 10))
         
-        self.audio_status_var = tk.StringVar(value="No audio yet")
-        ttk.Label(audio_frame, textvariable=self.audio_status_var, wraplength=260).pack(fill=tk.X)
-        
-        btn_frame = ttk.Frame(audio_frame)
-        btn_frame.pack(fill=tk.X, pady=(10, 0))
-        
-        self.preview_btn = ttk.Button(btn_frame, text="🔊 Preview", command=self._preview_audio, state=tk.DISABLED)
-        self.preview_btn.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
-        
-        self.export_btn = ttk.Button(btn_frame, text="💾 Export", command=self._export_audio, state=tk.DISABLED)
-        self.export_btn.pack(side=tk.RIGHT, fill=tk.X, expand=True)
+        # Export button
+        self.export_btn = ttk.Button(right, text="💾 Export Audio", command=self._export_audio, state=tk.DISABLED)
+        self.export_btn.pack(fill=tk.X, pady=(0, 10))
         
         # Status bar
         status_bar = ttk.Frame(self.root, relief=tk.SUNKEN)
@@ -149,6 +149,25 @@ class ChatterboxApp:
             title += " *"
         self.root.title(title)
     
+    def _show_device_selector(self):
+        """Show device selector and then initialize models"""
+        # Show device selector
+        device_selector = DeviceSelector(self.root)
+        selected_device = device_selector.show()
+        
+        # If user closed the dialog without selecting, exit the app
+        if selected_device is None:
+            print("⚠️ Device selection cancelled. Exiting app...")
+            self.root.quit()
+            return
+        
+        # Store the selected device
+        self.selected_device = selected_device
+        print(f"🎯 Selected device: {selected_device.upper()}")
+        
+        # Give a brief moment before showing loading screen
+        self.root.after(100, self._initialize_tts_models)
+    
     # Initialization
     def _initialize_tts_models(self):
         """Initialize TTS models with loading screen"""
@@ -156,12 +175,15 @@ class ChatterboxApp:
         loading_screen = LoadingScreen(self.root)
         loading_screen.show()
         
-        # Initialize models
-        success = tts_generator.initialize(loading_screen)
+        # Initialize models with the selected device
+        success = tts_generator.initialize(loading_screen, force_device=self.selected_device)
         
         # Close loading screen
         if loading_screen.window and loading_screen.window.winfo_exists():
-            self.root.after(500, loading_screen.close)  # Small delay to show completion
+            loading_screen.close()
+        
+        # Show main window after loading is complete
+        self.root.deiconify()
         
         if not success:
             if not loading_screen.is_stopped():
@@ -177,36 +199,69 @@ class ChatterboxApp:
             messagebox.showwarning("No Text", "Enter text first")
             return
         
-        self.status_label.config(text="Generating...")
+        # Disable all buttons during generation
+        self._set_ui_enabled(False)
+        self.status_label.config(text="Generating... 0%")
         self.root.update()
         
-        try:
-            voice_config = self.voice_selector.get_voice_config()
-            expression_config = self.expression_controls.get_expression_config()
-            filename = generate_audio_filename(text)
-            output_path = Path(self.output_folder_var.get()) / filename
-            ensure_folder_exists(output_path.parent)
-            
-            result_path = tts_generator.generate_audio(
-                text, 
-                voice_config, 
-                expression_config, 
-                output_path,
-                app_state.language_code
-            )
-            
-            if result_path:
-                app_state.update(generated_audio_path=result_path)
-                self.audio_status_var.set(f"✅ {result_path.name}")
-                self.preview_btn.config(state=tk.NORMAL)
-                self.export_btn.config(state=tk.NORMAL)
-                self.status_label.config(text="Generated")
-            else:
-                self.status_label.config(text="Failed")
-                messagebox.showinfo("Not Implemented", "TTS integration pending.\nThis UI shows the modular structure.")
-        except Exception as e:
-            self.status_label.config(text="Error")
-            messagebox.showerror("Error", str(e))
+        # Use temporary file for preview
+        temp_file = Path(tempfile.gettempdir()) / f"chatterbox_preview_{generate_audio_filename(text)}"
+        
+        def progress_callback(percentage, status):
+            """Update UI with progress - safe for threads"""
+            self.root.after(0, lambda p=percentage, s=status: self.status_label.config(text=f"{s} {int(p)}%"))
+        
+        def generate_in_thread():
+            """Generate audio in background thread"""
+            try:
+                voice_config = self.voice_selector.get_voice_config()
+                expression_config = self.expression_controls.get_expression_config()
+                
+                result_path = tts_generator.generate_audio(
+                    text, 
+                    voice_config, 
+                    expression_config, 
+                    temp_file,
+                    app_state.language_code,
+                    progress_callback
+                )
+                
+                # Update UI on main thread
+                self.root.after(0, lambda: self._on_generation_complete(result_path, temp_file))
+                
+            except Exception as e:
+                self.root.after(0, lambda: self._on_generation_error(e))
+        
+        # Start generation in background thread
+        thread = threading.Thread(target=generate_in_thread, daemon=True)
+        thread.start()
+    
+    def _on_generation_complete(self, result_path, temp_file):
+        """Handle successful audio generation"""
+        if result_path:
+            app_state.update(generated_audio_path=result_path)
+            self.audio_player.load_audio(result_path)
+            self.export_btn.config(state=tk.NORMAL)
+            self.status_label.config(text="✅ Generation complete!")
+        else:
+            self.status_label.config(text="❌ Generation failed")
+            messagebox.showerror("Generation Failed", "Failed to generate audio. Check console for details.")
+        
+        # Re-enable UI
+        self._set_ui_enabled(True)
+    
+    def _on_generation_error(self, error):
+        """Handle generation error"""
+        self.status_label.config(text="❌ Error")
+        messagebox.showerror("Error", f"Error generating audio:\n{str(error)}")
+        self._set_ui_enabled(True)
+    
+    def _set_ui_enabled(self, enabled: bool):
+        """Enable or disable UI controls"""
+        state = tk.NORMAL if enabled else tk.DISABLED
+        self.generate_btn.config(state=state)
+        self.text_input.text_widget.config(state=state)
+        # Note: Components don't expose enable/disable yet, but generate button is the main one
     
     def _preview_audio(self):
         if app_state.generated_audio_path:
@@ -215,14 +270,41 @@ class ChatterboxApp:
     def _export_audio(self):
         if not app_state.generated_audio_path:
             return
-        file_path = filedialog.asksaveasfilename(
-            title="Export Audio",
-            defaultextension=".wav",
-            filetypes=AUDIO_FORMATS,
-            initialfile=app_state.generated_audio_path.name
-        )
-        if file_path:
-            export_audio(app_state.generated_audio_path, Path(file_path))
+        
+        # Disable buttons during export
+        self.export_btn.config(state=tk.DISABLED)
+        self.generate_btn.config(state=tk.DISABLED)
+        self.status_label.config(text="Exporting audio...")
+        self.root.update()
+        
+        try:
+            # Generate filename from text or use default
+            default_filename = app_state.generated_audio_path.name
+            
+            # Use the output folder directly
+            output_folder = Path(self.output_folder_var.get())
+            export_path = output_folder / default_filename
+            
+            # If file exists, add number suffix
+            counter = 1
+            while export_path.exists():
+                stem = default_filename.rsplit('.', 1)[0]
+                ext = default_filename.rsplit('.', 1)[1] if '.' in default_filename else 'wav'
+                export_path = output_folder / f"{stem}_{counter}.{ext}"
+                counter += 1
+            
+            # Copy temp file to output folder
+            export_audio(app_state.generated_audio_path, export_path)
+            
+            self.status_label.config(text=f"✅ Exported: {export_path.name}")
+            
+        except Exception as e:
+            self.status_label.config(text="❌ Export failed")
+            messagebox.showerror("Export Error", f"Failed to export audio:\n{str(e)}")
+        finally:
+            # Re-enable buttons
+            self.export_btn.config(state=tk.NORMAL)
+            self.generate_btn.config(state=tk.NORMAL)
     
     def _browse_output_folder(self):
         folder = filedialog.askdirectory(initialdir=self.output_folder_var.get())

@@ -84,7 +84,12 @@ class VoiceSelectorComponent:
         self._update_filter_buttons()
         
         # Use reusable Dropdown component (React-style!)
-        default_voice = predefined_voices["All"][0] if predefined_voices["All"] else ""
+        # Default to first male voice if available, otherwise first voice
+        default_voice = ""
+        if predefined_voices.get("Male"):
+            default_voice = predefined_voices["Male"][0]
+        elif predefined_voices.get("All"):
+            default_voice = predefined_voices["All"][0]
         
         self.voice_dropdown = DropdownComponent(
             parent=self.predefined_frame,

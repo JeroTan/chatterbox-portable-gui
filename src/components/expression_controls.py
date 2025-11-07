@@ -168,9 +168,13 @@ class ExpressionControlsComponent:
         mode = self.expression_mode.get()
         
         if mode == "text":
+            text = self.expression_text.get("1.0", tk.END).strip()
+            # If it's the placeholder text or empty, return "default"
+            if not text or text.startswith("e.g.,"):
+                text = "default"
             return {
                 "mode": "text",
-                "text": self.expression_text.get("1.0", tk.END).strip()
+                "text": text
             }
         else:
             return {

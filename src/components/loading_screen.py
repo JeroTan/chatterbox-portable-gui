@@ -30,15 +30,14 @@ class LoadingScreen:
         self.window.geometry("500x280")
         self.window.resizable(False, False)
         
+        # Make it always on top
+        self.window.attributes('-topmost', True)
+        
         # Center the window
         self.window.update_idletasks()
         x = (self.window.winfo_screenwidth() // 2) - (500 // 2)
         y = (self.window.winfo_screenheight() // 2) - (280 // 2)
         self.window.geometry(f"500x280+{x}+{y}")
-        
-        # Make it modal
-        self.window.transient(self.parent)
-        self.window.grab_set()
         
         # Configure background
         self.window.configure(bg="#2b2b2b")

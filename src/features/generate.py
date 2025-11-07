@@ -19,14 +19,17 @@ class TTSGenerator:
         self.multilingual_model = None
         self._initialized = False
         self.loading_screen = None
+        self.device = "cpu"  # Default to CPU
+        self.device_name = "CPU"
     
-    def initialize(self, loading_screen=None) -> bool:
+    def initialize(self, loading_screen=None, force_device=None) -> bool:
         """
         Initialize the TTS model
         This is done lazily on first use
         
         Args:
             loading_screen: Optional LoadingScreen instance for progress updates
+            force_device: Optional device selection ("cpu" or "cuda"). If None, auto-detect.
             
         Returns:
             bool: Success status
@@ -52,8 +55,34 @@ class TTSGenerator:
             from chatterbox.mtl_tts import ChatterboxMultilingualTTS
             import torch
             
+            # Handle device selection
+            if force_device:
+                # User explicitly chose a device
+                if force_device == "cuda" and torch.cuda.is_available():
+                    self.device = "cuda"
+                    self.device_name = f"GPU ({torch.cuda.get_device_name(0)})"
+                    print(f"✅ Using selected GPU: {self.device_name}")
+                    print(f"   CUDA Version: {torch.version.cuda}")
+                    print(f"   GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+                else:
+                    self.device = "cpu"
+                    self.device_name = "CPU"
+                    print(f"✅ Using selected CPU")
+            else:
+                # Auto-detect (fallback for backward compatibility)
+                if torch.cuda.is_available():
+                    self.device = "cuda"
+                    self.device_name = f"GPU ({torch.cuda.get_device_name(0)})"
+                    print(f"✅ GPU detected: {self.device_name}")
+                    print(f"   CUDA Version: {torch.version.cuda}")
+                    print(f"   GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+                else:
+                    self.device = "cpu"
+                    self.device_name = "CPU"
+                    print("⚠️ No GPU detected, using CPU (slower)")
+            
             if loading_screen:
-                loading_screen.update_progress(10, "📦 Importing libraries...")
+                loading_screen.update_progress(10, f"📦 Using {self.device_name}...")
             
             # Check for force stop
             if loading_screen and loading_screen.is_stopped():
@@ -80,7 +109,7 @@ class TTSGenerator:
                     return False
                 
                 # Initialize English model
-                self.model = ChatterboxTTS.from_pretrained(device="cpu")  # Use "cuda" if you have GPU
+                self.model = ChatterboxTTS.from_pretrained(device=self.device)
                 
                 if loading_screen:
                     loading_screen.update_progress(50, "🌍 Loading Multilingual TTS model...")
@@ -91,7 +120,7 @@ class TTSGenerator:
                     return False
                 
                 # Initialize multilingual model
-                self.multilingual_model = ChatterboxMultilingualTTS.from_pretrained(device="cpu")
+                self.multilingual_model = ChatterboxMultilingualTTS.from_pretrained(device=self.device)
                 
                 if loading_screen:
                     loading_screen.update_progress(90, "✨ Finalizing setup...")
@@ -119,7 +148,8 @@ class TTSGenerator:
         voice_config: Dict[str, Any],
         expression_config: Dict[str, Any],
         output_path: Path,
-        language_code: str = "en"
+        language_code: str = "en",
+        progress_callback=None
     ) -> Optional[Path]:
         """
         Generate audio from text
@@ -130,6 +160,7 @@ class TTSGenerator:
             expression_config: Expression configuration dict (has 'mode', 'text' or parameters)
             output_path: Path where audio will be saved
             language_code: Language code (e.g., "en", "ja", "zh")
+            progress_callback: Optional callback function(percentage, status) for progress updates
             
         Returns:
             Optional[Path]: Path to generated audio or None if failed
@@ -142,7 +173,11 @@ class TTSGenerator:
             return None
         
         try:
+            if progress_callback:
+                progress_callback(10, "Preparing generation...")
+            
             print("\n🎤 Generating audio...")
+            print(f"   Device: {self.device_name}")
             print(f"   Text: {text[:50]}..." if len(text) > 50 else f"   Text: {text}")
             print(f"   Voice: {voice_config.get('voice', 'Default')}")
             print(f"   Expression: {expression_config}")
@@ -165,7 +200,11 @@ class TTSGenerator:
                 exaggeration = 0.5
                 cfg_weight = 0.5
             
-            # Generate audio
+            if progress_callback:
+                status_msg = f"Synthesizing speech on {self.device_name}, please wait..."
+                progress_callback(30, status_msg)
+            
+            # Generate audio (GPU: 2-10 seconds, CPU: 10-60 seconds depending on text length)
             if language_code == "en":
                 # Use English-only model for better quality
                 print(f"   Using English model (exaggeration={exaggeration:.2f}, cfg_weight={cfg_weight:.2f})")
@@ -186,11 +225,23 @@ class TTSGenerator:
                     cfg_weight=cfg_weight
                 )
             
+            if progress_callback:
+                progress_callback(90, "Saving audio file...")
+            
             # Save audio
             output_path.parent.mkdir(parents=True, exist_ok=True)
             ta.save(str(output_path), wav, self.model.sr)
             
+            if progress_callback:
+                progress_callback(100, "Audio generated successfully!")
+            
             print(f"✅ Audio generated successfully: {output_path}")
+            
+            # Clear GPU cache if using CUDA
+            if self.device == "cuda":
+                import torch
+                torch.cuda.empty_cache()
+            
             return output_path
             
         except Exception as e:
@@ -201,8 +252,13 @@ class TTSGenerator:
     def cleanup(self):
         """Cleanup resources"""
         if self.model:
-            # TODO: Cleanup if needed
-            pass
+            # Clear GPU memory if using CUDA
+            if self.device == "cuda":
+                import torch
+                self.model = None
+                self.multilingual_model = None
+                torch.cuda.empty_cache()
+                print("🧹 GPU memory cleared")
         self._initialized = False
 
 
