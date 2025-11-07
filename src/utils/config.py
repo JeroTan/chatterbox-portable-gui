@@ -45,6 +45,36 @@ TEXT_COLOR = "#333333"
 # ============================================
 # VOICE OPTIONS
 # ============================================
+# Languages supported by Chatterbox TTS
+SUPPORTED_LANGUAGES = {
+    "ar": "Arabic",
+    "da": "Danish",
+    "de": "German",
+    "el": "Greek",
+    "en": "English",
+    "es": "Spanish",
+    "fi": "Finnish",
+    "fr": "French",
+    "he": "Hebrew",
+    "hi": "Hindi",
+    "it": "Italian",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "ms": "Malay",
+    "nl": "Dutch",
+    "no": "Norwegian",
+    "pl": "Polish",
+    "pt": "Portuguese",
+    "ru": "Russian",
+    "sv": "Swedish",
+    "sw": "Swahili",
+    "tr": "Turkish",
+    "zh": "Chinese",
+}
+
+# Default language
+DEFAULT_LANGUAGE = "en"
+
 # Voices organized by gender for filtering
 PREDEFINED_VOICES = {
     "Female": [

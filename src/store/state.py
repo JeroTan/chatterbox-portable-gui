@@ -17,6 +17,10 @@ class AppState:
         # Text input
         self.text_input: str = ""
         
+        # Language settings
+        self.language_code: str = "en"
+        self.language_name: str = "English"
+        
         # Voice settings
         self.voice_mode: str = "predefined"  # or "custom"
         self.selected_voice: str = "Default Voice (Female, Neutral)"
@@ -60,6 +64,8 @@ class AppState:
         """Get state as dictionary for saving"""
         return {
             "text_input": self.text_input,
+            "language_code": self.language_code,
+            "language_name": self.language_name,
             "voice_mode": self.voice_mode,
             "selected_voice": self.selected_voice,
             "custom_audio_path": str(self.custom_audio_path) if self.custom_audio_path else None,

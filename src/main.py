@@ -9,6 +9,7 @@ from pathlib import Path
 
 # Import components
 from components.text_input import TextInputComponent
+from components.language_selector import LanguageSelectorComponent
 from components.voice_selector import VoiceSelectorComponent
 from components.expression_controls import ExpressionControlsComponent
 
@@ -75,6 +76,14 @@ class ChatterboxApp:
         
         self.text_input = TextInputComponent(left, on_generate=self._generate_audio)
         self.text_input.frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        
+        self.language_selector = LanguageSelectorComponent(
+            left, 
+            SUPPORTED_LANGUAGES, 
+            DEFAULT_LANGUAGE, 
+            on_language_change=self._on_language_change
+        )
+        self.language_selector.frame.pack(fill=tk.X, pady=(0, 10))
         
         self.voice_selector = VoiceSelectorComponent(left, PREDEFINED_VOICES, on_voice_change=self._on_voice_change)
         self.voice_selector.frame.pack(fill=tk.X, pady=(0, 10))
@@ -189,6 +198,10 @@ class ChatterboxApp:
         if folder:
             self.output_folder_var.set(folder)
             app_state.update(output_folder=Path(folder))
+    
+    def _on_language_change(self, language_code: str, language_name: str):
+        """Handle language selection change"""
+        app_state.update(language_code=language_code, language_name=language_name)
     
     def _on_voice_change(self):
         config = self.voice_selector.get_voice_config()
