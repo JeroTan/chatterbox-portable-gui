@@ -155,14 +155,24 @@ The following directories are excluded from version control (too large):
 
 ## 🎯 Usage
 
-(Add your usage instructions here once you start using the package)
-
+### For Developers (Current)
 ```python
-# Example usage
-from chatterbox_tts import ChatterboxTTS
+# Activate virtual environment
+.venv\Scripts\activate
 
-# Your code here...
+# Run your application
+python src/main.py
 ```
+
+### For End Users (Portable Distribution)
+Once the portable version is built:
+1. Download `ChatterboxTTS-Portable.zip`
+2. Extract to any location
+3. Double-click `ChatterboxTTS.bat`
+4. Application starts with GUI
+5. No Python installation needed
+
+See `PORTABLE_BUILD_GUIDE.md` for building distribution package.
 
 ## 📝 Development History
 

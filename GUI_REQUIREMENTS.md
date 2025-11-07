@@ -427,6 +427,284 @@ chatterbox-codebase/
 - **PyQt5/PySide6** - Advanced desktop app
 - **Streamlit** - Quick web interface
 
+### Deployment Options
+
+#### Option 1: Portable .exe (Standalone Application)
+
+**Yes, it's possible!** Python apps can be packaged as `.exe` files using:
+
+**PyInstaller** (Recommended)
+```powershell
+# Install PyInstaller
+pip install pyinstaller
+
+# Create standalone .exe (includes all dependencies)
+pyinstaller --onefile --windowed --name "ChatterboxTTS" src/main.py
+
+# With icon
+pyinstaller --onefile --windowed --icon=app.ico --name "ChatterboxTTS" src/main.py
+```
+
+**Pros:**
+- ✅ Double-click to run (no Python installation needed)
+- ✅ Portable - can copy to any Windows PC
+- ✅ All packages bundled inside
+- ✅ Professional feel
+
+**Cons:**
+- ❌ Large file size (~3-5 GB due to PyTorch)
+- ❌ Slower first startup (unpacking)
+- ❌ Antivirus may flag it (false positive)
+
+---
+
+**Alternative Tools:**
+
+1. **py2exe** - Windows-specific packager
+2. **cx_Freeze** - Cross-platform packager
+3. **Nuitka** - Compiles to C++ (faster, smaller)
+4. **PyOxidizer** - Rust-based packager
+
+---
+
+#### Option 2: Portable Folder (Recommended for Large Apps)
+
+**Better for this project due to size:**
+
+Create a portable folder structure:
+```
+ChatterboxTTS-Portable/
+├── ChatterboxTTS.exe          ← Launcher script
+├── python311/                  ← Embedded Python
+│   ├── python.exe
+│   └── Lib/                   ← All packages
+├── app/
+│   └── main.py                ← Your GUI
+├── outputs/                    ← Generated audio
+├── projects/                   ← Saved projects
+└── README.txt                 ← Usage instructions
+```
+
+**Setup Steps:**
+
+1. **Download Python Embeddable Package**
+   - Get from python.org (Python 3.11 embeddable)
+   - Extract to `python311/` folder
+
+2. **Install Dependencies**
+   ```powershell
+   .\python311\python.exe -m pip install chatterbox-tts gradio
+   ```
+
+3. **Create Launcher** (`ChatterboxTTS.exe` or `.bat`)
+   ```batch
+   @echo off
+   cd /d "%~dp0"
+   start python311\python.exe app\main.py
+   ```
+
+**Pros:**
+- ✅ Portable (copy entire folder)
+- ✅ No installation needed
+- ✅ Faster startup
+- ✅ Easy to update (replace files)
+- ✅ Can inspect/modify if needed
+
+**Cons:**
+- ❌ Folder is ~3 GB
+- ❌ User sees folder structure
+
+---
+
+#### Option 3: Installer Package
+
+**Use Inno Setup or NSIS:**
+
+Creates proper installer like commercial software:
+- Start menu shortcuts
+- Desktop icon
+- Uninstaller
+- Registry entries
+- File associations (.cbx opens in app)
+
+**Best for:** Distribution to end-users
+
+---
+
+### ✅ Recommended Approach for This Project (CHOSEN)
+
+**For Development/Team:** Virtual environment (current setup)
+
+**For Distribution:** Portable Folder + Launcher ⭐ **SELECTED**
+
+**Why Portable Folder:**
+1. PyTorch models are huge (~2-3 GB)
+2. Single .exe would be 4-5 GB and slower startup
+3. Portable folder is more practical (~3 GB)
+4. Easier to debug and update
+5. Users can see what's inside if curious
+6. Less likely to trigger antivirus false positives
+7. Faster startup after first run
+
+**Distribution Package:**
+```
+ChatterboxTTS-Portable.zip (~2.2 GB compressed)
+  └── ChatterboxTTS-Portable/
+      ├── ChatterboxTTS.bat  ← Double-click to run
+      ├── python311/         ← Embedded Python + packages
+      ├── app/              ← Your GUI application
+      ├── outputs/          ← Generated audio
+      └── projects/         ← Saved projects
+```
+
+**User Experience:**
+1. Download and extract ZIP
+2. Double-click `ChatterboxTTS.bat`
+3. Application starts
+4. No installation required
+
+---
+
+### Creating Portable Distribution
+
+**Step-by-step Guide:**
+
+```powershell
+# 1. Create distribution folder
+New-Item -ItemType Directory -Path "ChatterboxTTS-Portable"
+
+# 2. Download Python 3.11 embeddable
+# https://www.python.org/downloads/windows/
+# Extract to ChatterboxTTS-Portable/python311/
+
+# 3. Install get-pip in embedded Python
+Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "get-pip.py"
+.\ChatterboxTTS-Portable\python311\python.exe get-pip.py
+
+# 4. Install dependencies
+.\ChatterboxTTS-Portable\python311\python.exe -m pip install chatterbox-tts gradio
+
+# 5. Copy your app
+Copy-Item -Recurse src/* ChatterboxTTS-Portable/app/
+
+# 6. Create launcher.bat
+@"
+@echo off
+cd /d "%~dp0"
+start python311\python.exe app\main.py
+"@ | Out-File -Encoding ASCII ChatterboxTTS-Portable\ChatterboxTTS.bat
+
+# 7. Create README.txt with instructions
+
+# 8. Zip and distribute
+Compress-Archive -Path ChatterboxTTS-Portable -DestinationPath ChatterboxTTS-v1.0-Portable.zip
+```
+
+---
+
+### Package Structure Examples
+
+**Minimal Portable Package:**
+```
+ChatterboxTTS/
+├── run.bat                     ← Double-click to start
+├── python/                     ← Embedded Python (~50 MB)
+├── Lib/                        ← Dependencies (~2.5 GB)
+│   └── site-packages/
+├── app/
+│   └── main.py
+├── outputs/
+├── projects/
+└── README.txt
+```
+
+**Professional Package:**
+```
+ChatterboxTTS/
+├── ChatterboxTTS.exe           ← Beautiful launcher
+├── python/
+├── app/
+├── resources/
+│   ├── icon.ico
+│   └── logo.png
+├── outputs/
+├── projects/
+├── logs/
+├── README.txt
+├── LICENSE.txt
+└── CHANGELOG.txt
+```
+
+---
+
+### Creating a Windows Launcher Executable
+
+**Option A: Batch File (Simple)**
+```batch
+@echo off
+title Chatterbox TTS
+echo Starting Chatterbox TTS...
+cd /d "%~dp0"
+python\python.exe app\main.py
+pause
+```
+
+**Option B: VBS Launcher (No Console Window)**
+```vbscript
+Set objShell = CreateObject("WScript.Shell")
+objShell.CurrentDirectory = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)
+objShell.Run "python\python.exe app\main.py", 0, False
+```
+
+**Option C: C# Launcher (Professional)**
+- Create small C# app that launches Python
+- Can add splash screen, checking dependencies, etc.
+- Compile to `ChatterboxTTS.exe`
+
+**Option D: AutoIt Script**
+- Create GUI wrapper
+- Compile to .exe
+- Looks professional
+
+---
+
+### File Size Considerations
+
+**Component Sizes (Approximate):**
+```
+Python Embeddable:        50 MB
+PyTorch:                2000 MB
+Transformers:            500 MB
+Gradio + dependencies:   100 MB
+Other packages:          350 MB
+Your code:                 1 MB
+--------------------------------
+Total:                 ~3 GB
+```
+
+**Optimization Tips:**
+1. Remove unnecessary packages
+2. Use PyTorch CPU-only version (smaller)
+3. Don't include development dependencies
+4. Compress with 7-Zip (better than ZIP)
+
+---
+
+### Distribution Methods
+
+**For End Users:**
+1. **Portable ZIP** - Download and extract
+2. **Installer** - Professional installation
+3. **Cloud Link** - Google Drive, Dropbox
+4. **GitHub Releases** - Version tracking
+
+**For Developers:**
+1. **Git Repository** - Clone and run setup.py
+2. **Docker Container** - Consistent environment
+3. **Requirements.txt** - Virtual environment
+
+---
+
 ### Must-Have Features
 ✅ Multi-line text input with keyboard shortcuts
 ✅ Output folder selection
@@ -739,6 +1017,16 @@ Status: Last auto-save: 30 seconds ago
 - Better error messages
 - Performance optimization
 - Project templates/presets
+
+### Phase 6: Portable Distribution
+- ✅ Create portable folder structure
+- ✅ Build launcher script (ChatterboxTTS.bat)
+- ✅ Package with embedded Python 3.11
+- ✅ Include all dependencies (~3 GB)
+- ✅ Write USER_README.txt
+- ✅ Test on clean Windows machine
+- ✅ Create ZIP for distribution (~2.2 GB)
+- See `PORTABLE_BUILD_GUIDE.md` for detailed steps
 
 ---
 
