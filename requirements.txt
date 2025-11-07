@@ -1,14 +1,14 @@
-# Chatterbox TTS and Dependencies
-# Generated on November 7, 2025
+# Chatterbox TTS Voice Generator - Requirements
+# Version: 1.0.0
+# Updated: November 7, 2025
 # Python 3.11 required
 
-# Main package
+# ============================================
+# CORE TTS ENGINE
+# ============================================
 chatterbox-tts==0.1.4
 
-# Core dependencies (these will be installed automatically with chatterbox-tts)
-# Listed here for reference and version pinning
-
-# Deep Learning
+# Deep Learning (Auto-installed with chatterbox-tts)
 torch==2.6.0
 torchaudio==2.6.0
 transformers==4.46.3
@@ -37,15 +37,65 @@ conformer==0.3.2
 resemble-perth==1.0.1
 einops>=0.6.1
 
-# Web Interface
+# ============================================
+# GUI FRAMEWORK
+# ============================================
+# Gradio - Web-based GUI (Recommended for v1.0)
 gradio==5.44.1
+
+# Web Framework Dependencies (Auto-installed with Gradio)
 fastapi>=0.115.2
 uvicorn>=0.14.0
 httpx>=0.24.1
 
-# Utilities
-tqdm>=4.27
-requests
-pyyaml>=5.0
-packaging
-filelock
+# ============================================
+# FILE HANDLING & UTILITIES
+# ============================================
+# Save/Load Project Files (JSON)
+# (Built-in json module - no install needed)
+
+# Path handling
+pathlib2>=2.3.0; python_version < '3.4'  # Built-in for Python 3.11
+
+# Date/Time formatting
+python-dateutil>=2.8.0
+
+# ============================================
+# AUDIO PREVIEW & EXPORT
+# ============================================
+# Pydub for audio manipulation (optional but useful)
+pydub>=0.25.0
+
+# ============================================
+# PORTABLE BUILD TOOLS (Development only)
+# ============================================
+# Uncomment when building portable distribution
+# pyinstaller>=6.0.0
+# auto-py-to-exe>=2.40.0  # GUI for PyInstaller
+
+# ============================================
+# DEVELOPMENT TOOLS (Optional)
+# ============================================
+# Code formatting
+# black>=23.0.0
+# isort>=5.12.0
+
+# Linting
+# flake8>=6.0.0
+# pylint>=3.0.0
+
+# Type checking
+# mypy>=1.0.0
+
+# Testing
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
+
+# ============================================
+# GENERAL UTILITIES
+# ============================================
+tqdm>=4.27          # Progress bars
+requests>=2.28.0    # HTTP requests
+pyyaml>=5.0         # YAML config files
+packaging>=23.0     # Version handling
+filelock>=3.12.0    # File locking

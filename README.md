@@ -53,15 +53,37 @@ A Text-to-Speech project using Chatterbox TTS for Pixuu's Pixel Adventure game.
 
 The setup process installs the following main packages:
 
-- **chatterbox-tts** (0.1.4) - Main TTS engine
+### Core TTS Engine
+- **chatterbox-tts** (0.1.4) - Main text-to-speech engine
 - **torch** (2.6.0) - PyTorch for deep learning
 - **torchaudio** (2.6.0) - Audio processing
 - **transformers** (4.46.3) - Hugging Face transformers
-- **gradio** (5.44.1) - Web interface
-- **librosa** (0.11.0) - Audio analysis
-- And many more dependencies...
+- **diffusers** (0.29.0) - Diffusion models
 
-Total installation size: ~2-3 GB
+### GUI & Interface
+- **gradio** (5.44.1) - Web-based GUI framework
+- **fastapi** - Web framework backend
+- **uvicorn** - ASGI server
+
+### Audio Processing
+- **librosa** (0.11.0) - Audio analysis and processing
+- **soundfile** - Audio I/O operations
+- **pydub** - Audio manipulation and export
+
+### Utilities
+- **python-dateutil** - Date/time formatting for file naming
+- **pyyaml** - Configuration file handling
+- **tqdm** - Progress bars
+- **requests** - HTTP requests
+
+Total installation size: **~2.5-3 GB**
+
+### Development Tools (Optional)
+Install with: `pip install -r requirements-dev.txt`
+- PyInstaller - Create portable executables
+- Black, Flake8 - Code quality
+- Pytest - Testing framework
+- And more...
 
 ## 🔧 Troubleshooting
 
@@ -89,12 +111,19 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 chatterbox-codebase/
 ├── .venv/                  # Virtual environment (DO NOT commit)
 ├── .git/                   # Git repository
+├── src/                    # Source code
+│   └── main.py            # Main GUI application
+├── outputs/                # Generated audio files
+├── projects/               # Saved project files
+├── reference_audio/        # Custom voice samples
 ├── .gitignore              # Git ignore file
 ├── README.md               # This file
+├── GUI_REQUIREMENTS.md     # Complete GUI feature specifications
 ├── QUICKSTART.md           # Quick start guide
 ├── SETUP_SUMMARY.md        # Detailed setup documentation
-├── package.json            # Project metadata (like npm package.json)
-├── requirements.txt        # Python dependencies (simplified)
+├── PORTABLE_BUILD_GUIDE.md # How to create portable distribution
+├── requirements.txt        # Python dependencies (production)
+├── requirements-dev.txt    # Development dependencies
 ├── requirements-full.txt   # Complete pip freeze output
 ├── setup.py                # Automated setup script
 ├── run.ps1                 # PowerShell script runner
