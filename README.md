@@ -118,11 +118,11 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ```
 chatterbox-codebase/
-├── .venv/                  # Virtual environment (DO NOT commit)
-├── .git/                   # Git repository
-├── src/                    # Source code
-│   ├── main.py            # Main application entry point
-│   ├── components/         # Reusable UI components
+├── .venv/                          # Virtual environment (DO NOT commit)
+├── .git/                           # Git repository
+├── src/                            # Source code
+│   ├── main.py                     # Main application entry point
+│   ├── components/                 # Reusable UI components
 │   │   ├── device_selector.py      # GPU/CPU selection dialog
 │   │   ├── dropdown.py             # Reusable dropdown component
 │   │   ├── text_input.py           # Text input area
@@ -131,38 +131,38 @@ chatterbox-codebase/
 │   │   ├── expression_controls.py  # Expression/emotion controls
 │   │   ├── loading_screen.py       # Model loading screen with progress
 │   │   └── audio_player.py         # Built-in audio player with scrubber
-│   ├── features/           # Core functionality
-│   │   ├── generate.py    # TTS generation with GPU/CPU support
-│   │   ├── project.py     # Project save/load
-│   │   └── export.py      # Audio export
-│   ├── utils/              # Utility functions
-│   │   ├── config.py      # Configuration constants
-│   │   └── file_utils.py  # File operations
-│   ├── store/              # State management
-│   │   └── state.py       # Application state
-│   └── assets/             # Voice samples and assets
-│       ├── downloads/      # ALL downloaded voice samples (93 MB, 256 files)
-│       └── reference_voices/  # Active voices organized by language
-│           ├── en/         # English voices (male_default.wav, female_default.wav)
-│           ├── ja/         # Japanese voices
-│           ├── zh/         # Chinese voices
+│   ├── features/                   # Core functionality
+│   │   ├── generate.py             # TTS generation with GPU/CPU support
+│   │   ├── project.py              # Project save/load
+│   │   └── export.py               # Audio export
+│   ├── utils/                      # Utility functions
+│   │   ├── config.py               # Configuration constants
+│   │   └── file_utils.py           # File operations
+│   ├── store/                      # State management
+│   │   └── state.py                # Application state
+│   └── assets/                     # Voice samples and assets
+│       ├── downloads/              # ALL downloaded voice samples (93 MB, 256 files)
+│       └── reference_voices/       # Active voices organized by language
+│           ├── en/                 # English voices (male_default.wav, female_default.wav)
+│           ├── ja/                 # Japanese voices
+│           ├── zh/                 # Chinese voices
 │           └── [21 more languages...]
-├── output/                 # Generated audio files (auto-created)
-├── projects/               # Saved project files
-├── download_voice_samples.py  # Script to download official voice samples
-├── .gitignore              # Git ignore file
-├── README.md               # This file
-├── FEATURES.md             # Feature documentation
-├── GUI_REQUIREMENTS.md     # Complete GUI feature specifications
-├── QUICKSTART.md           # Quick start guide
-├── SETUP_SUMMARY.md        # Detailed setup documentation
-├── PORTABLE_BUILD_GUIDE.md # How to create portable distribution
-├── requirements.txt        # Python dependencies (production)
-├── requirements-dev.txt    # Development dependencies
-├── requirements-full.txt   # Complete pip freeze output
-├── setup.py                # Automated setup script
-├── run.ps1                 # PowerShell script runner
-└── run.bat                 # Batch script runner
+├── output/                         # Generated audio files (auto-created)
+├── projects/                       # Saved project files
+├── download_voice_samples.py       # Script to download official voice samples
+├── .gitignore                      # Git ignore file
+├── README.md                       # This file
+├── FEATURES.md                     # Feature documentation
+├── GUI_REQUIREMENTS.md             # Complete GUI feature specifications
+├── QUICKSTART.md                   # Quick start guide
+├── SETUP_SUMMARY.md                # Detailed setup documentation
+├── PORTABLE_BUILD_GUIDE.md         # How to create portable distribution
+├── requirements.txt                # Python dependencies (production)
+├── requirements-dev.txt            # Development dependencies
+├── requirements-full.txt           # Complete pip freeze output
+├── setup.py                        # Automated setup script
+├── run.ps1                         # PowerShell script runner
+└── run.bat                         # Batch script runner
 ```
 
 ## 🎮 Script Commands (Like npm scripts)
