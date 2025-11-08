@@ -129,15 +129,46 @@ class AudioPlayerComponent:
             self.audio_path = audio_path
             self.pygame.mixer.music.load(str(audio_path))
             
-            # Get audio length using pygame.mixer.Sound for WAV files
+            # Get audio length using multiple methods
+            self.audio_length = 0
+            
+            # Method 1: Try pygame.mixer.Sound
             try:
                 sound = self.pygame.mixer.Sound(str(audio_path))
                 self.audio_length = sound.get_length()
+                print(f"🎵 Audio length (pygame.Sound): {self.audio_length} seconds")
+            except Exception as e:
+                print(f"⚠️ pygame.Sound failed: {e}")
+            
+            # Method 2: If pygame failed, try wave module for WAV files
+            if self.audio_length == 0:
+                try:
+                    import wave
+                    with wave.open(str(audio_path), 'rb') as wav_file:
+                        frames = wav_file.getnframes()
+                        rate = wav_file.getframerate()
+                        self.audio_length = frames / float(rate)
+                        print(f"🎵 Audio length (wave): {self.audio_length} seconds")
+                except Exception as e:
+                    print(f"⚠️ wave module failed: {e}")
+            
+            # Method 3: Try reading with soundfile
+            if self.audio_length == 0:
+                try:
+                    import soundfile as sf
+                    info = sf.info(str(audio_path))
+                    self.audio_length = info.duration
+                    print(f"🎵 Audio length (soundfile): {self.audio_length} seconds")
+                except Exception as e:
+                    print(f"⚠️ soundfile failed: {e}")
+            
+            if self.audio_length > 0:
                 self.scrubber.config(to=self.audio_length)
                 self.total_time_var.set(self._format_time(self.audio_length))
-            except:
-                self.audio_length = 0
-                self.total_time_var.set("0:00.000")
+            else:
+                self.scrubber.config(to=100)
+                self.total_time_var.set("Unknown")
+                print("⚠️ Could not determine audio length")
             
             self.current_position = 0
             self.current_time_var.set("0:00.000")
@@ -148,6 +179,7 @@ class AudioPlayerComponent:
             self.stop_btn.config(state=tk.NORMAL)
         except Exception as e:
             self.status_var.set(f"Error loading audio: {str(e)}")
+            print(f"❌ Error loading audio: {e}")
     
     def _format_time(self, seconds: float) -> str:
         """Format time in seconds to MM:SS.mmm format"""

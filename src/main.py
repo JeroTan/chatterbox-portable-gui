@@ -45,6 +45,12 @@ class ChatterboxApp:
         # Hide main window initially
         self.root.withdraw()
         
+        # Flag to prevent duplicate generation
+        self.is_generating = False
+        
+        # Flag to prevent infinite loops when syncing UI
+        self.is_syncing = False
+        
         self._setup_menu()
         self._setup_ui()
         self._setup_keyboard_shortcuts()
@@ -89,7 +95,7 @@ class ChatterboxApp:
         left = ttk.Frame(main_container)
         left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
         
-        self.text_input = TextInputComponent(left, on_generate=self._generate_audio)
+        self.text_input = TextInputComponent(left, on_generate=self._generate_audio, on_text_change=self._on_text_change)
         self.text_input.frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
         self.language_selector = LanguageSelectorComponent(
@@ -146,6 +152,10 @@ class ChatterboxApp:
     
     def _on_state_change(self):
         """Update UI on state change"""
+        # Skip if we're currently syncing to prevent infinite loops
+        if self.is_syncing:
+            return
+            
         title = APP_NAME
         if app_state.current_project_path:
             title += f" - {app_state.current_project_path.name}"
@@ -171,6 +181,66 @@ class ChatterboxApp:
         
         # Give a brief moment before showing loading screen
         self.root.after(100, self._initialize_tts_models)
+    
+    def _sync_ui_with_state(self):
+        """Sync UI components with current app state"""
+        # Set syncing flag to prevent infinite loops
+        if self.is_syncing:
+            return
+        
+        self.is_syncing = True
+        
+        try:
+            # Update language selector FIRST (before text input)
+            if hasattr(self, 'language_selector'):
+                # Language selector will update voice selector automatically
+                self.language_selector.set_language(app_state.language_code)
+            
+            # Update voice selector
+            if hasattr(self, 'voice_selector'):
+                self.voice_selector.set_voice_config(
+                    mode=app_state.voice_mode,
+                    voice=app_state.selected_voice,
+                    custom_path=app_state.custom_audio_path
+                )
+            
+            # Update expression controls
+            if hasattr(self, 'expression_controls'):
+                config = {
+                    "mode": app_state.expression_mode,
+                    "text": app_state.expression_text,
+                    "energy": app_state.energy,
+                    "speed": app_state.speed,
+                    "pitch": app_state.pitch,
+                    "emphasis": app_state.emphasis
+                }
+                
+                # Add preset if in preset mode
+                if app_state.expression_mode == "preset":
+                    config["preset"] = app_state.selected_preset
+                
+                self.expression_controls.set_expression_config(config)
+            
+            # Update output folder
+            if hasattr(self, 'output_folder_var'):
+                self.output_folder_var.set(str(app_state.output_folder))
+            
+            # Update text input LAST to avoid it being cleared by other component callbacks
+            if hasattr(self, 'text_input'):
+                # Always set text, even if empty (don't use "if app_state.text_input" as it's False for empty strings)
+                text = app_state.text_input if app_state.text_input else ""
+                if text:
+                    self.text_input.set_text(text)
+                else:
+                    self.text_input.clear()
+                
+        except Exception as e:
+            print(f"⚠️ Error syncing UI with state: {e}")
+            import traceback
+            traceback.print_exc()
+        finally:
+            # Always clear the syncing flag
+            self.is_syncing = False
     
     # Initialization
     def _initialize_tts_models(self):
@@ -198,10 +268,18 @@ class ChatterboxApp:
     
     # Event handlers
     def _generate_audio(self):
+        # Prevent duplicate generation if already generating
+        if self.is_generating:
+            print("⚠️ Generation already in progress, ignoring duplicate request")
+            return
+        
         text = self.text_input.get_text()
         if not text:
             messagebox.showwarning("No Text", "Enter text first")
             return
+        
+        # Set generating flag
+        self.is_generating = True
         
         # Disable all buttons during generation
         self._set_ui_enabled(False)
@@ -251,6 +329,9 @@ class ChatterboxApp:
             self.status_label.config(text="❌ Generation failed")
             messagebox.showerror("Generation Failed", "Failed to generate audio. Check console for details.")
         
+        # Clear generating flag
+        self.is_generating = False
+        
         # Re-enable UI
         self._set_ui_enabled(True)
     
@@ -258,6 +339,10 @@ class ChatterboxApp:
         """Handle generation error"""
         self.status_label.config(text="❌ Error")
         messagebox.showerror("Error", f"Error generating audio:\n{str(error)}")
+        
+        # Clear generating flag
+        self.is_generating = False
+        
         self._set_ui_enabled(True)
     
     def _set_ui_enabled(self, enabled: bool):
@@ -322,6 +407,16 @@ class ChatterboxApp:
         # Update voice selector to show voices for new language
         self.voice_selector.update_language(language_code)
     
+    def _on_text_change(self, text: str):
+        """Handle text input change"""
+        # Skip if syncing OR if state is loading to prevent infinite loops and overwrites
+        if self.is_syncing or app_state._loading:
+            print(f"⏭️ Skipping text change (syncing={self.is_syncing}, loading={app_state._loading})")
+            return
+            
+        print(f"💬 Text changed: {len(text)} characters")
+        app_state.update(text_input=text)
+    
     def _on_voice_change(self):
         config = self.voice_selector.get_voice_config()
         # Use voice_file (actual path) instead of voice name
@@ -332,17 +427,50 @@ class ChatterboxApp:
         config = self.expression_controls.get_expression_config()
         if config["mode"] == "text":
             app_state.update(expression_mode="text", expression_text=config["text"])
-        else:
+        elif config["mode"] == "preset":
+            # Save preset selection and its parameter values
+            app_state.update(
+                expression_mode="preset",
+                selected_preset=config.get("preset", "🎭 Default (Neutral)"),
+                energy=config.get("energy", 0.70),
+                speed=config.get("speed", 0.40),
+                emphasis=config.get("emphasis", 0.90),
+                pitch=config.get("pitch", 0)
+            )
+        else:  # parameters
             app_state.update(expression_mode="parameters", **{k: v for k, v in config.items() if k != "mode"})
     
     # Project management
     def _new_project(self):
         new_project()
+        # Sync UI after creating new project
+        self._sync_ui_with_state()
     
     def _open_project(self):
-        file_path = filedialog.askopenfilename(title="Open Project", filetypes=PROJECT_FORMATS, initialdir=PROJECTS_FOLDER)
+        # Show "Loading..." in text input before opening file dialog
+        if hasattr(self, 'text_input'):
+            self.text_input.set_text("Loading save file...")
+            self.root.update()  # Force UI update
+        
+        file_path = filedialog.askopenfilename(
+            title="Open Project", 
+            filetypes=PROJECT_FORMATS, 
+            defaultextension=".cbx",
+            initialdir=PROJECTS_FOLDER
+        )
+        
         if file_path:
-            load_project(Path(file_path))
+            success = load_project(Path(file_path))
+            if success:
+                # Sync UI after loading project
+                self._sync_ui_with_state()
+        else:
+            # User cancelled - restore previous state or clear loading message
+            if hasattr(self, 'text_input'):
+                if app_state.text_input:
+                    self.text_input.set_text(app_state.text_input)
+                else:
+                    self.text_input.clear()
     
     def _save_project(self):
         if app_state.current_project_path:
@@ -351,7 +479,7 @@ class ChatterboxApp:
             self._save_project_as()
     
     def _save_project_as(self):
-        file_path = filedialog.asksaveasfilename(title="Save As", defaultextension=".json", filetypes=PROJECT_FORMATS, initialdir=PROJECTS_FOLDER)
+        file_path = filedialog.asksaveasfilename(title="Save As", defaultextension=".cbx", filetypes=PROJECT_FORMATS, initialdir=PROJECTS_FOLDER)
         if file_path:
             save_project(Path(file_path))
     

@@ -204,8 +204,9 @@ class TTSGenerator:
             # - cfg_weight (0.01-1.0): Controls speech rate (lower = faster, higher = slower)
             # - temperature (0.05-5.0): Controls variation/emphasis in delivery
             # - pitch: Post-processing pitch shift in semitones (-12 to +12)
-            if expression_config.get("mode") == "parameters":
-                # Use values directly from UI (already in correct ranges)
+            mode = expression_config.get("mode", "preset")
+            if mode in ["parameters", "preset"]:
+                # Use values directly from config (works for both parameters and preset modes)
                 exaggeration = expression_config.get("energy", 0.70)     # 0.25-2.0 (default: 0.7)
                 cfg_weight = expression_config.get("speed", 0.40)        # 0.01-1.0 (default: 0.4) - speech rate
                 temperature = expression_config.get("emphasis", 0.90)    # 0.05-5.0 (default: 0.9) - variation

@@ -27,16 +27,17 @@ class AppState:
         self.custom_audio_path: Optional[Path] = None
         
         # Expression settings
-        self.expression_mode: str = "text"  # or "parameters"
-        self.expression_text: str = ""
+        self.expression_mode: str = "preset"  # "preset", "parameters", or "text"
+        self.selected_preset: str = "🎭 Default (Neutral)"  # For preset mode
+        self.expression_text: str = ""  # For text mode
         self.emotion: str = "Neutral"
-        self.energy: int = 50
-        self.speed: float = 1.0
+        self.energy: float = 0.70
+        self.speed: float = 0.40
         self.pitch: int = 0
-        self.emphasis: int = 30
+        self.emphasis: float = 0.90
         
         # Output settings
-        self.output_folder: Path = Path("./outputs")
+        self.output_folder: Path = Path("./output")
         
         # Generated audio
         self.generated_audio_path: Optional[Path] = None
@@ -47,12 +48,17 @@ class AppState:
         
         # Observers (for UI updates)
         self._observers = []
+        self._loading = False  # Flag to prevent updates during loading
     
     def update(self, **kwargs):
         """
         Update state and notify observers
         Usage: state.update(text_input="new text", energy=75)
         """
+        # Skip updates if we're currently loading a project
+        if self._loading:
+            return
+            
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -70,6 +76,7 @@ class AppState:
             "selected_voice": self.selected_voice,
             "custom_audio_path": str(self.custom_audio_path) if self.custom_audio_path else None,
             "expression_mode": self.expression_mode,
+            "selected_preset": self.selected_preset,
             "expression_text": self.expression_text,
             "emotion": self.emotion,
             "energy": self.energy,
@@ -81,15 +88,23 @@ class AppState:
     
     def load_state_dict(self, state_dict: Dict[str, Any]):
         """Load state from dictionary"""
-        for key, value in state_dict.items():
-            if hasattr(self, key):
-                if key in ["custom_audio_path", "output_folder"] and value:
-                    setattr(self, key, Path(value))
-                else:
-                    setattr(self, key, value)
+        # Set loading flag to prevent callbacks from overwriting values
+        self._loading = True
         
-        self.unsaved_changes = False
-        self._notify_observers()
+        try:
+            for key, value in state_dict.items():
+                if hasattr(self, key):
+                    if key in ["custom_audio_path", "output_folder"] and value:
+                        setattr(self, key, Path(value))
+                    else:
+                        setattr(self, key, value)
+            
+            self.unsaved_changes = False
+            
+        finally:
+            # Clear loading flag and notify observers once at the end
+            self._loading = False
+            self._notify_observers()
     
     def subscribe(self, observer):
         """Add observer for state changes"""

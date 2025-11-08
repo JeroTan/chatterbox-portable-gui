@@ -31,7 +31,7 @@ class ExpressionControlsComponent:
         # Container frame
         self.frame = ttk.LabelFrame(parent, text="Expression Controls", padding="10")
         
-        # Mode selection
+        # Mode selection (hide text mode for now - only show Preset and Parameter)
         mode_frame = ttk.Frame(self.frame)
         mode_frame.pack(fill=tk.X, pady=(0, 10))
         
@@ -53,6 +53,9 @@ class ExpressionControlsComponent:
             command=self._on_mode_change
         ).pack(side=tk.LEFT)
         
+        # Note: Text mode radio button intentionally hidden
+        # Text mode frame still exists for backward compatibility with saved projects
+        
         # Preset mode (dropdown with predefined emotions/expressions)
         self.preset_frame = ttk.Frame(self.frame)
         self.preset_frame.pack(fill=tk.X, pady=(0, 10))
@@ -68,7 +71,7 @@ class ExpressionControlsComponent:
             "😨 Fearful": {"energy": 1.00, "speed": 0.30, "emphasis": 1.20, "pitch": 3},
             "😌 Calm": {"energy": 0.50, "speed": 0.55, "emphasis": 0.70, "pitch": -1},
             "😄 Excited": {"energy": 1.40, "speed": 0.25, "emphasis": 1.40, "pitch": 4},
-            "🥱 Tired": {"energy": 0.35, "speed": 0.70, "emphasis": 0.50, "pitch": -3},
+            "🥱 Tired": {"energy": 0.25, "speed": 0.01, "emphasis": 0.05, "pitch": -3},
             "😏 Sarcastic": {"energy": 0.80, "speed": 0.50, "emphasis": 1.00, "pitch": 1},
             "🤔 Thoughtful": {"energy": 0.60, "speed": 0.60, "emphasis": 0.80, "pitch": -1},
             "📢 Energetic": {"energy": 1.60, "speed": 0.30, "emphasis": 1.30, "pitch": 3},
@@ -352,11 +355,11 @@ class ExpressionControlsComponent:
                 "text": text
             }
         elif mode == "preset":
-            # Return parameters from the selected preset
+            # Return preset mode with parameters from the selected preset
             selected_preset = self.preset_var.get()
             preset_values = self.emotion_presets.get(selected_preset, self.emotion_presets["🎭 Default (Neutral)"])
             return {
-                "mode": "parameters",  # Treat preset as parameters for generation
+                "mode": "preset",  # Keep mode as preset
                 "preset": selected_preset,
                 "energy": preset_values["energy"],
                 "speed": preset_values["speed"],

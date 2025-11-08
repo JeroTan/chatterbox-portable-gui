@@ -133,8 +133,8 @@ AUDIO_FORMATS = [
 ]
 
 PROJECT_FORMATS = [
-    ("JSON Files", "*.json"),
     ("Chatterbox Projects", "*.cbx"),
+    ("JSON Files", "*.json"),
     ("All Files", "*.*"),
 ]
 
