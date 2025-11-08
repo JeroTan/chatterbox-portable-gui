@@ -1,6 +1,8 @@
-# Chatterbox TTS - Feature Documentation
+# Chatterbox TTS GUI - Feature Documentation
 
-Complete list of features and capabilities in the Chatterbox TTS desktop application.
+A desktop Text-to-Speech application for generating character voices, created for the **Pixuu's Pixel Adventure** animation project.
+
+Complete list of features and capabilities.
 
 ---
 
@@ -81,17 +83,38 @@ Generate speech in 23 languages:
 Two ways to select voices:
 
 #### Predefined Voices
-- Male/Female/All gender filtering
-- Searchable dropdown with 3-column grid
-- Quick filter buttons like tabs
-- **Default:** First available male voice
-- Visual feedback for selected filter
+- **Dynamic Loading:** Voices loaded from `src/assets/reference_voices/[language]/`
+- **Language-Aware:** Voice list updates automatically when language changes
+- **Male/Female/All Filtering:** Quick filter buttons with visual feedback
+- **Fancy Grid Dropdown:** 3-column searchable popup
+- **Default Voices:** Each language has male_default.wav and female_default.wav
+- **Extensible:** Add voices by copying audio files to language folders
+- **256 Samples:** Official voice samples available in `src/assets/downloads/`
+
+**Voice Organization:**
+```
+reference_voices/
+├── en/
+│   ├── male_default.wav
+│   ├── female_default.wav
+│   └── [custom voices...]
+├── ja/
+│   ├── male_default.wav
+│   └── female_default.wav
+└── [23 languages total...]
+```
 
 #### Custom Voice (Reference Audio)
 - Upload your own reference audio file
-- Browse and select WAV/MP3 files
+- Browse and select WAV/MP3/FLAC files
 - Voice cloning from custom samples
 - Path display for selected file
+
+**Adding Custom Voices:**
+1. Browse `src/assets/downloads/` for samples
+2. Copy desired files to `reference_voices/[language]/`
+3. Name descriptively (e.g., `male_british.wav`)
+4. Voice appears automatically in dropdown!
 
 ---
 
@@ -195,7 +218,7 @@ output/
 ## 🎨 User Interface
 
 ### 8. Component Architecture
-**Philosophy:** React-style reusable components
+**Philosophy:** Modular, reusable components
 
 **Components:**
 - `DropdownComponent` - Reusable searchable dropdown
@@ -389,6 +412,8 @@ Potential features for future versions:
 - [ ] Project templates
 - [ ] Cloud sync
 - [ ] Voice training interface
+- [ ] Voice sample preview before generation
+- [ ] Bulk voice sample import/organization
 
 ---
 
@@ -397,13 +422,13 @@ Potential features for future versions:
 - `README.md` - Main documentation and setup
 - `QUICKSTART.md` - Quick start guide
 - `GUI_REQUIREMENTS.md` - Original GUI specifications
-- `DEVELOPER_GUIDE.md` - Developer documentation
-- `PACKAGES.md` - Package dependencies
+- `download_voice_samples.py` - Voice sample downloader script
 
 ---
 
-**Last Updated:** November 7, 2025
-**Version:** 1.0.0
+**Last Updated:** November 8, 2025
+**Version:** 1.1.0
 **Python:** 3.11
 **PyTorch:** 2.5.1+cu121
 **Chatterbox TTS:** 0.1.4
+**Voice Samples:** 256 official samples (93 MB)

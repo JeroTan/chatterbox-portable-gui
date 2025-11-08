@@ -1,8 +1,8 @@
-# Chatterbox TTS - Pixuu's Pixel Adventure
+# Chatterbox TTS GUI
 
 > 📝 **Note:** This documentation was created with the assistance of **Claude Sonnet** (Anthropic's AI assistant) working through GitHub Copilot in VS Code. Claude helped troubleshoot installation issues, resolve Python compatibility problems, and generate comprehensive documentation to ensure a smooth setup experience.
 
-A Text-to-Speech project using Chatterbox TTS for Pixuu's Pixel Adventure game.
+A desktop Text-to-Speech application using Chatterbox TTS, created to generate character voices for the **Pixuu's Pixel Adventure** animation project.
 
 ## 📋 Prerequisites
 
@@ -122,7 +122,7 @@ chatterbox-codebase/
 ├── .git/                   # Git repository
 ├── src/                    # Source code
 │   ├── main.py            # Main application entry point
-│   ├── components/         # Reusable UI components (React-style)
+│   ├── components/         # Reusable UI components
 │   │   ├── device_selector.py      # GPU/CPU selection dialog
 │   │   ├── dropdown.py             # Reusable dropdown component
 │   │   ├── text_input.py           # Text input area
@@ -138,13 +138,21 @@ chatterbox-codebase/
 │   ├── utils/              # Utility functions
 │   │   ├── config.py      # Configuration constants
 │   │   └── file_utils.py  # File operations
-│   └── store/              # State management
-│       └── state.py       # Application state
+│   ├── store/              # State management
+│   │   └── state.py       # Application state
+│   └── assets/             # Voice samples and assets
+│       ├── downloads/      # ALL downloaded voice samples (93 MB, 256 files)
+│       └── reference_voices/  # Active voices organized by language
+│           ├── en/         # English voices (male_default.wav, female_default.wav)
+│           ├── ja/         # Japanese voices
+│           ├── zh/         # Chinese voices
+│           └── [21 more languages...]
 ├── output/                 # Generated audio files (auto-created)
 ├── projects/               # Saved project files
-├── reference_audio/        # Custom voice samples
+├── download_voice_samples.py  # Script to download official voice samples
 ├── .gitignore              # Git ignore file
 ├── README.md               # This file
+├── FEATURES.md             # Feature documentation
 ├── GUI_REQUIREMENTS.md     # Complete GUI feature specifications
 ├── QUICKSTART.md           # Quick start guide
 ├── SETUP_SUMMARY.md        # Detailed setup documentation
@@ -233,9 +241,14 @@ Generate audio in 23 languages:
 - Arabic, Danish, Dutch, Finnish, Greek, Hebrew, Hindi, Malay, Norwegian, Polish, Swedish, Swahili, Turkish
 
 #### 3. Voice Selection
-- **Predefined Voices** - Filter by Male/Female/All, searchable dropdown
+- **Predefined Voices** - Dynamically loaded from `src/assets/reference_voices/[language]/`
+  - Voices update automatically when language changes
+  - Filter by Male/Female/All with fancy grid dropdown
+  - Each language has default male and female voices
+  - Add more voices by copying audio files to language folders
 - **Custom Voice** - Upload reference audio for voice cloning
-- **Default**: Male voice (first available male voice)
+- **Default**: Male voice (male_default.wav for selected language)
+- **256 voice samples** available in `src/assets/downloads/` for manual review
 
 #### 4. Expression Controls
 - **Text Mode** - Describe emotion: "happy and energetic", "calm narrator", etc.
@@ -267,7 +280,54 @@ Once the portable version is built:
 
 See `PORTABLE_BUILD_GUIDE.md` for building distribution package.
 
+## 🎙️ Voice Samples Setup
+
+### Downloading Official Voice Samples
+The project includes 256 official voice samples from Chatterbox:
+
+```powershell
+# Download all voice samples (93 MB)
+python download_voice_samples.py
+```
+
+This creates:
+- `src/assets/downloads/` - ALL 256 samples for manual review
+- `src/assets/reference_voices/[lang]/` - Default male/female voices for each language
+
+### Adding Custom Voices
+1. Browse `src/assets/downloads/` to find voices you like
+2. Copy desired voice files to `src/assets/reference_voices/[language]/`
+3. Name them descriptively (e.g., `male_british.wav`, `female_young.wav`)
+4. They appear automatically in the voice dropdown!
+
+Example:
+```powershell
+# Add a British male voice to English
+cp src/assets/downloads/prompts/male_uk_chef.flac src/assets/reference_voices/en/male_british.wav
+
+# Add a narrator voice to Japanese
+cp src/assets/downloads/mtl_samples23lang/ja/infer-00.wav src/assets/reference_voices/ja/male_narrator.wav
+```
+
+Voices are organized by language:
+```
+reference_voices/
+├── en/  # English voices
+├── ja/  # Japanese voices
+├── zh/  # Chinese voices
+└── ...  # 23 languages total
+```
+
 ## 📝 Development History
+
+### Voice System Overhaul (November 8, 2025)
+1. ✅ Downloaded all 256 official voice samples from Chatterbox (93 MB)
+2. ✅ Organized voices by language in `reference_voices/[lang]/` structure
+3. ✅ Dynamic voice loading - voices update automatically when language changes
+4. ✅ Default male/female voices for all 23 languages
+5. ✅ Voice selector now uses actual audio files for voice cloning
+6. ✅ Fixed predefined voices to work with reference audio files
+7. ✅ Created download script for easy voice sample management
 
 ### GPU Acceleration & Device Selection (November 7, 2025)
 1. ✅ Installed PyTorch with CUDA 12.1 support for GPU acceleration
@@ -277,17 +337,17 @@ See `PORTABLE_BUILD_GUIDE.md` for building distribution package.
 5. ✅ Auto-height device selector that fits content
 
 ### UI/UX Improvements (November 7, 2025)
-1. ✅ Component-based architecture (React-style reusable components)
-2. ✅ Created reusable DropdownComponent for language and voice selection
+1. ✅ Component-based architecture that are reusable
+2. ✅ Added DropdownComponent for language and voice selection
 3. ✅ Searchable dropdown with 23 language support
 4. ✅ Loading screen with progress bar and force stop button
 5. ✅ Built-in audio player with millisecond scrubber and seeking
-6. ✅ Play/Pause combined into single toggle button
+6. ✅ Play/Pause toggle button
 7. ✅ Auto-export to output folder with smart naming
 8. ✅ Disabled UI during generation to prevent errors
-9. ✅ Honest progress messages (no fake progress bars)
-10. ✅ Expression defaults to "default" instead of showing placeholder
-11. ✅ Default voice changed to male (first available male voice)
+9. ✅ Progress message when generating
+10. ✅ Expression defaults to "default" instead of sending the placeholder message
+11. ✅ Default voice changed to first available voice in assets
 
 ### Initial Setup Process (November 7, 2025)
 1. ✅ Created Python 3.11 virtual environment
@@ -300,11 +360,29 @@ See `PORTABLE_BUILD_GUIDE.md` for building distribution package.
 
 ## 🤝 Contributing
 
-(Add contribution guidelines if this is a team project)
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-(Add your license information)
+This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.
+
+This means:
+- ✅ You can use, modify, and distribute this software
+- ✅ You must keep it open source
+- ✅ Any modifications must also be GPL-3.0
+- ✅ You must state changes made to the code
+- ✅ You must include the original copyright notice
+
+**In short:** This ensures the software and all its derivatives remain free and open source forever.
+
+See the [LICENSE](LICENSE) file for the full license text, or visit https://www.gnu.org/licenses/gpl-3.0.en.html
+
+**Copyright © 2025 JeroTan**
+
+---
+
+**About Pixuu's Pixel Adventure:**  
+This TTS GUI was created to generate character voices for the Pixuu's Pixel Adventure animation project. The tool provides an easy way to create consistent, high-quality voice performances across multiple languages.
 
 ## 🔗 Resources
 

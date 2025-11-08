@@ -1,7 +1,6 @@
 """
 Voice Selector Component
-Dynamically loads voices from reference_voices/[language]/ folder
-Keeps the fancy dropdown UI with grid layout
+Predefined or custom voice selection with Male/Female filtering
 """
 
 import tkinter as tk
@@ -13,29 +12,26 @@ from .dropdown import DropdownComponent
 
 class VoiceSelectorComponent:
     """
-    Voice selector that loads voices from assets/reference_voices/[lang]/
-    Uses fancy dropdown with Male/Female filtering
+    Voice selection component with predefined/custom modes
+    Predefined voices can be filtered by Male/Female/All
+    Uses reusable DropdownComponent (React-style!)
     """
     
     def __init__(
         self,
         parent,
-        current_language: str = "en",
+        predefined_voices: Dict[str, List[str]],
         on_voice_change: Optional[Callable] = None
     ):
         """
         Args:
             parent: Parent tkinter widget
-            current_language: Current selected language code
+            predefined_voices: Dict with keys "Male", "Female", "All" and lists of voice names
             on_voice_change: Callback when voice changes
         """
-        self.current_language = current_language
+        self.predefined_voices = predefined_voices
         self.on_voice_change = on_voice_change
-        self.reference_voices_path = Path("src/assets/reference_voices")
-        self.current_filter = "All"
-        
-        # Load voices for current language
-        self._load_voices_for_language(current_language)
+        self.current_filter = "All"  # Default filter
         
         # Container frame
         self.frame = ttk.LabelFrame(parent, text="Voice Selection", padding="10")
@@ -48,7 +44,7 @@ class VoiceSelectorComponent:
         
         ttk.Radiobutton(
             mode_frame,
-            text="Predefined Voice",
+            text="Predefined (Uses Default Model Voice)",
             variable=self.voice_mode,
             value="predefined",
             command=self._on_mode_change
@@ -72,7 +68,7 @@ class VoiceSelectorComponent:
         
         ttk.Label(filter_frame, text="Filter:").pack(side=tk.LEFT, padx=(0, 10))
         
-        # Create filter buttons
+        # Create filter buttons (like tabs)
         self.filter_buttons = {}
         for filter_name in ["All", "Male", "Female"]:
             btn = ttk.Button(
@@ -87,24 +83,24 @@ class VoiceSelectorComponent:
         # Highlight current filter
         self._update_filter_buttons()
         
-        # Default to first male voice if available
+        # Use reusable Dropdown component (React-style!)
+        # Default to first male voice if available, otherwise first voice
         default_voice = ""
-        if self.predefined_voices.get("Male"):
-            default_voice = self.predefined_voices["Male"][0]
-        elif self.predefined_voices.get("All"):
-            default_voice = self.predefined_voices["All"][0]
+        if predefined_voices.get("Male"):
+            default_voice = predefined_voices["Male"][0]
+        elif predefined_voices.get("All"):
+            default_voice = predefined_voices["All"][0]
         
-        # Use fancy Dropdown component
         self.voice_dropdown = DropdownComponent(
             parent=self.predefined_frame,
-            items=self.predefined_voices["All"],
+            items=predefined_voices["All"],
             label="Selected Voice:",
             default_value=default_voice,
             on_select=self._handle_voice_selection,
             button_width=35,
             popup_width=500,
             popup_height=350,
-            columns=3
+            columns=3  # Grid layout
         )
         self.voice_dropdown.frame.pack(fill=tk.X, pady=(5, 0))
         
@@ -129,58 +125,8 @@ class VoiceSelectorComponent:
             command=self._browse_audio_file
         ).pack(side=tk.LEFT)
     
-    def _load_voices_for_language(self, lang_code: str):
-        """Load voices from reference_voices/[lang]/ folder"""
-        lang_folder = self.reference_voices_path / lang_code
-        
-        all_voices = []
-        male_voices = []
-        female_voices = []
-        self.voice_files = {}
-        
-        if lang_folder.exists():
-            # Get all audio files
-            audio_files = sorted(lang_folder.glob("*.wav")) + sorted(lang_folder.glob("*.flac"))
-            
-            for audio_file in audio_files:
-                # Just use the filename (without extension) as the voice name
-                voice_name = audio_file.stem
-                all_voices.append(voice_name)
-                self.voice_files[voice_name] = audio_file
-                
-                # Filter by male/female based on filename
-                if "male" in voice_name.lower() and "female" not in voice_name.lower():
-                    male_voices.append(voice_name)
-                elif "female" in voice_name.lower():
-                    female_voices.append(voice_name)
-        
-        # If no voices found, add placeholder
-        if not all_voices:
-            all_voices = ["No voices available"]
-        
-        self.predefined_voices = {
-            "All": all_voices,
-            "Male": male_voices if male_voices else all_voices,
-            "Female": female_voices if female_voices else all_voices
-        }
-    
-    def update_language(self, lang_code: str):
-        """Update voices when language changes"""
-        self.current_language = lang_code
-        self._load_voices_for_language(lang_code)
-        
-        # Update dropdown items
-        current_filter = self.current_filter
-        self.voice_dropdown.items = self.predefined_voices[current_filter]
-        
-        # Select first voice in new language
-        if self.predefined_voices[current_filter]:
-            self.voice_dropdown.set_value(self.predefined_voices[current_filter][0])
-        
-        self._trigger_callback()
-    
     def _handle_voice_selection(self, voice: str):
-        """Handle voice selection from dropdown"""
+        """Handle voice selection from dropdown (event handler)"""
         self._trigger_callback()
     
     def _set_filter(self, filter_name: str):
@@ -191,20 +137,25 @@ class VoiceSelectorComponent:
         filtered_voices = self.predefined_voices[filter_name]
         current_voice = self.voice_dropdown.get_value()
         
-        # Update dropdown items
+        # Update dropdown items (React-style: update props!)
         self.voice_dropdown.items = filtered_voices
         
-        # If current voice not in filter, select first one
+        # If current voice not in new filter, select first one
         if current_voice not in filtered_voices and filtered_voices:
             self.voice_dropdown.set_value(filtered_voices[0])
+        elif not filtered_voices:
+            # Handle empty filter (shouldn't happen but just in case)
+            self.voice_dropdown.set_value("")
         
         # Update button styles
         self._update_filter_buttons()
         
+        # Trigger callback
+        self._trigger_callback()
         self._trigger_callback()
     
     def _update_filter_buttons(self):
-        """Update filter button styles"""
+        """Update filter button styles to highlight active filter"""
         for filter_name, button in self.filter_buttons.items():
             if filter_name == self.current_filter:
                 button.state(['pressed', '!disabled'])
@@ -248,13 +199,10 @@ class VoiceSelectorComponent:
         mode = self.voice_mode.get()
         
         if mode == "predefined":
-            selected_voice = self.voice_dropdown.get_value()
-            voice_file = self.voice_files.get(selected_voice)
-            
             return {
                 "mode": "predefined",
-                "voice": selected_voice,
-                "voice_file": voice_file,
+                "voice": self.voice_dropdown.get_value(),
+                "gender_filter": self.current_filter,
                 "custom_path": None
             }
         else:
@@ -262,18 +210,24 @@ class VoiceSelectorComponent:
             return {
                 "mode": "custom",
                 "voice": None,
-                "voice_file": None,
+                "gender_filter": None,
                 "custom_path": Path(path) if path != "No file selected" else None
             }
     
     def set_voice_config(self, mode: str, voice: Optional[str] = None, 
+                        gender_filter: Optional[str] = None, 
                         custom_path: Optional[Path] = None):
         """Set voice configuration"""
         self.voice_mode.set(mode)
         self._on_mode_change()
         
-        if mode == "predefined" and voice:
-            if voice in self.predefined_voices["All"]:
-                self.voice_dropdown.set_value(voice)
+        if mode == "predefined":
+            # Set filter if provided
+            if gender_filter and gender_filter in ["All", "Male", "Female"]:
+                self._set_filter(gender_filter)
+            
+            # Set voice if provided
+            if voice:
+                self.selected_voice_var.set(voice)
         elif mode == "custom" and custom_path:
             self.custom_path_var.set(str(custom_path))

@@ -1,6 +1,12 @@
 # Quick Start Guide
 
-## 🚀 For New Users (First Time Setup)
+## � About This Project
+
+This is a desktop TTS (Text-to-Speech) application built with Chatterbox TTS, created to generate character voices for the **Pixuu's Pixel Adventure** animation project.
+
+---
+
+## �🚀 For New Users (First Time Setup)
 
 ### Step 1: Install Prerequisites
 1. Install **Python 3.11** from https://www.python.org/downloads/
@@ -128,10 +134,22 @@ python src/main.py
 2. **Loading Screen** - Wait for models to load (first time takes longer)
 3. **Main Window** - Ready to generate audio!
 
+### Download Voice Samples (Recommended)
+```powershell
+# Download 256 official voice samples (93 MB)
+python download_voice_samples.py
+```
+This provides:
+- Default male/female voices for all 23 languages
+- 256 additional samples to choose from in `src/assets/downloads/`
+
 ### Using the Application
 1. **Enter Text** - Type or paste text in the text input area
 2. **Select Language** - Choose from 23 supported languages
-3. **Choose Voice** - Select predefined voice (Male/Female) or upload custom reference audio
+3. **Choose Voice** - Select predefined voice (updates automatically per language) or upload custom reference audio
+   - Predefined voices loaded from `src/assets/reference_voices/[language]/`
+   - Filter by Male/Female/All with fancy dropdown
+   - Add custom voices by copying files to language folders
 4. **Set Expression** - Describe emotion ("happy", "calm", etc.) or use parameter controls
 5. **Generate** - Click "Generate Audio" button
 6. **Preview** - Use built-in player with scrubber to listen

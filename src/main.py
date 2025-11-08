@@ -1,5 +1,9 @@
 """
-Main Application - Desktop Window for Chatterbox TTS
+Chatterbox TTS GUI - Main Application
+Copyright (C) 2025 JeroTan
+Licensed under GNU GPL v3 - see LICENSE file
+
+Desktop Window for Chatterbox TTS
 Built with Tkinter for a native desktop experience
 """
 
@@ -96,7 +100,7 @@ class ChatterboxApp:
         )
         self.language_selector.frame.pack(fill=tk.X, pady=(0, 10))
         
-        self.voice_selector = VoiceSelectorComponent(left, PREDEFINED_VOICES, on_voice_change=self._on_voice_change)
+        self.voice_selector = VoiceSelectorComponent(left, current_language=DEFAULT_LANGUAGE, on_voice_change=self._on_voice_change)
         self.voice_selector.frame.pack(fill=tk.X, pady=(0, 10))
         
         self.expression_controls = ExpressionControlsComponent(left, EMOTION_OPTIONS, on_expression_change=self._on_expression_change)
@@ -315,10 +319,14 @@ class ChatterboxApp:
     def _on_language_change(self, language_code: str, language_name: str):
         """Handle language selection change"""
         app_state.update(language_code=language_code, language_name=language_name)
+        # Update voice selector to show voices for new language
+        self.voice_selector.update_language(language_code)
     
     def _on_voice_change(self):
         config = self.voice_selector.get_voice_config()
-        app_state.update(voice_mode=config["mode"], selected_voice=config["voice"], custom_audio_path=config["custom_path"])
+        # Use voice_file (actual path) instead of voice name
+        voice_path = config.get("voice_file") or config.get("custom_path")
+        app_state.update(voice_mode=config["mode"], selected_voice=config["voice"], custom_audio_path=voice_path)
     
     def _on_expression_change(self):
         config = self.expression_controls.get_expression_config()

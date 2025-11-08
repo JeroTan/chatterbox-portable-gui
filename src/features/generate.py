@@ -179,14 +179,24 @@ class TTSGenerator:
             print("\n🎤 Generating audio...")
             print(f"   Device: {self.device_name}")
             print(f"   Text: {text[:50]}..." if len(text) > 50 else f"   Text: {text}")
-            print(f"   Voice: {voice_config.get('voice', 'Default')}")
-            print(f"   Expression: {expression_config}")
+            print(f"   Voice Mode: {voice_config.get('mode', 'Default')}")
             print(f"   Language: {language_code}")
             
-            # Get audio prompt path if custom voice mode
+            # Get audio prompt path from voice configuration
+            # Both predefined and custom voices provide audio files for voice cloning
             audio_prompt_path = None
-            if voice_config.get("mode") == "custom" and voice_config.get("custom_path"):
+            
+            if voice_config.get("mode") == "predefined" and voice_config.get("voice_file"):
+                # Predefined voice - use voice file from reference_voices folder
+                audio_prompt_path = str(voice_config["voice_file"])
+                print(f"   → Using predefined voice: {voice_config.get('voice')} ({audio_prompt_path})")
+            elif voice_config.get("mode") == "custom" and voice_config.get("custom_path"):
+                # Custom voice - use user-uploaded file
                 audio_prompt_path = str(voice_config["custom_path"])
+                print(f"   → Using custom voice: {audio_prompt_path}")
+            else:
+                print(f"   → Using default model voice (no reference audio)")
+
             
             # Get expression parameters
             # Chatterbox uses: exaggeration (0.0-1.0) and cfg_weight (0.0-1.0)
