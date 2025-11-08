@@ -303,13 +303,45 @@ Generate audio in 23 languages:
 
 ### For End Users (Portable Distribution)
 Once the portable version is built:
-1. Download `ChatterboxTTS-Portable.zip`
+1. Download `ChatterboxTTS-vX.X.X-Portable.zip`
 2. Extract to any location
 3. Double-click `ChatterboxTTS.bat`
 4. Application starts with GUI
 5. No Python installation needed
 
-See `PORTABLE_BUILD_GUIDE.md` for building distribution package.
+See `BUILD_GUIDE.md` for building distribution package.
+
+---
+
+## 📦 Building Portable Executable
+
+### Quick Build (Automated)
+
+```powershell
+# Build portable .exe with all dependencies
+.\build.ps1
+
+# Clean build (remove previous builds first)
+.\build.ps1 -Clean
+```
+
+**What you get:**
+- Standalone executable (.exe)
+- All dependencies included
+- No Python installation required
+- Ready to distribute (~2-3 GB ZIP)
+
+**Build time:** 10-20 minutes
+
+**See full guide:** [BUILD_GUIDE.md](BUILD_GUIDE.md)
+
+### Distribution
+- Final size: ~2-3 GB (ZIP)
+- Includes PyTorch, all AI models, and dependencies
+- Works on Windows 10/11 without any installation
+- Can be copied to USB drive or cloud storage
+
+---
 
 ## 🎙️ Voice Samples Setup
 

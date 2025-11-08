@@ -9,6 +9,7 @@ from tkinter import ttk, filedialog
 from typing import Callable, Optional, Dict, List
 from pathlib import Path
 from .dropdown import DropdownComponent
+from utils.resource_path import get_reference_voices_dir
 
 
 class VoiceSelectorComponent:
@@ -31,7 +32,7 @@ class VoiceSelectorComponent:
         """
         self.current_language = current_language
         self.on_voice_change = on_voice_change
-        self.reference_voices_path = Path("src/assets/reference_voices")
+        self.reference_voices_path = get_reference_voices_dir()
         self.current_filter = "All"
         
         # Load voices for current language

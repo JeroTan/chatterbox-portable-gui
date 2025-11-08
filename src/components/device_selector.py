@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 import torch
+from utils.resource_path import get_resource_path
 
 class DeviceSelector:
     def __init__(self, parent):
@@ -13,6 +14,14 @@ class DeviceSelector:
         self.dialog = tk.Toplevel(self.parent)
         self.dialog.title("Select Processing Device")
         self.dialog.resizable(False, False)
+        
+        # Set window icon
+        try:
+            icon_path = get_resource_path("icon/logo.ico")
+            if icon_path.exists():
+                self.dialog.iconbitmap(str(icon_path))
+        except Exception as e:
+            print(f"⚠️ Could not load icon for device selector: {e}")
         
         # Apply dark theme colors
         dark_bg = "#2d2d30"

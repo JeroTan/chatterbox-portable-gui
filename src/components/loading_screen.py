@@ -5,6 +5,7 @@ Shows progress while loading TTS models
 
 import tkinter as tk
 from tkinter import ttk
+from utils.resource_path import get_resource_path
 
 
 class LoadingScreen:
@@ -29,6 +30,14 @@ class LoadingScreen:
         self.window.title("Loading Chatterbox TTS")
         self.window.geometry("500x280")
         self.window.resizable(False, False)
+        
+        # Set window icon
+        try:
+            icon_path = get_resource_path("icon/logo.ico")
+            if icon_path.exists():
+                self.window.iconbitmap(str(icon_path))
+        except Exception as e:
+            print(f"⚠️ Could not load icon for loading screen: {e}")
         
         # Make it always on top
         self.window.attributes('-topmost', True)

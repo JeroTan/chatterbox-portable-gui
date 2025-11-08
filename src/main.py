@@ -32,6 +32,7 @@ from features.export import export_audio, preview_audio
 from utils.config import *
 from utils.file_utils import generate_audio_filename, ensure_folder_exists
 from utils.themes import get_theme
+from utils.resource_path import get_resource_path
 from store.state import app_state
 
 
@@ -43,6 +44,14 @@ class ChatterboxApp:
         self.root.title(APP_NAME)
         self.root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         self.root.minsize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
+        
+        # Set window icon
+        try:
+            icon_path = get_resource_path("icon/logo.ico")
+            if icon_path.exists():
+                self.root.iconbitmap(str(icon_path))
+        except Exception as e:
+            print(f"⚠️ Could not load icon: {e}")
         
         # Hide main window initially
         self.root.withdraw()
