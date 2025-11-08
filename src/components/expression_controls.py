@@ -35,13 +35,13 @@ class ExpressionControlsComponent:
         mode_frame = ttk.Frame(self.frame)
         mode_frame.pack(fill=tk.X, pady=(0, 10))
         
-        self.expression_mode = tk.StringVar(value="text")
+        self.expression_mode = tk.StringVar(value="preset")
         
         ttk.Radiobutton(
             mode_frame,
-            text="Text Description",
+            text="Preset Emotions",
             variable=self.expression_mode,
-            value="text",
+            value="preset",
             command=self._on_mode_change
         ).pack(side=tk.LEFT, padx=(0, 20))
         
@@ -53,9 +53,49 @@ class ExpressionControlsComponent:
             command=self._on_mode_change
         ).pack(side=tk.LEFT)
         
-        # Text mode
+        # Preset mode (dropdown with predefined emotions/expressions)
+        self.preset_frame = ttk.Frame(self.frame)
+        self.preset_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        ttk.Label(self.preset_frame, text="Select Expression:").pack(anchor=tk.W, pady=(0, 5))
+        
+        # Define preset emotions with their parameter values
+        self.emotion_presets = {
+            "🎭 Default (Neutral)": {"energy": 0.70, "speed": 0.40, "emphasis": 0.90, "pitch": 0},
+            "😊 Happy": {"energy": 1.20, "speed": 0.35, "emphasis": 1.10, "pitch": 2},
+            "😢 Sad": {"energy": 0.40, "speed": 0.60, "emphasis": 0.60, "pitch": -2},
+            "😠 Angry": {"energy": 1.50, "speed": 0.35, "emphasis": 1.30, "pitch": 0},
+            "😨 Fearful": {"energy": 1.00, "speed": 0.30, "emphasis": 1.20, "pitch": 3},
+            "😌 Calm": {"energy": 0.50, "speed": 0.55, "emphasis": 0.70, "pitch": -1},
+            "😄 Excited": {"energy": 1.40, "speed": 0.25, "emphasis": 1.40, "pitch": 4},
+            "🥱 Tired": {"energy": 0.35, "speed": 0.70, "emphasis": 0.50, "pitch": -3},
+            "😏 Sarcastic": {"energy": 0.80, "speed": 0.50, "emphasis": 1.00, "pitch": 1},
+            "🤔 Thoughtful": {"energy": 0.60, "speed": 0.60, "emphasis": 0.80, "pitch": -1},
+            "📢 Energetic": {"energy": 1.60, "speed": 0.30, "emphasis": 1.30, "pitch": 3},
+            "😴 Sleepy": {"energy": 0.30, "speed": 0.75, "emphasis": 0.40, "pitch": -4},
+            "🎤 Narrator": {"energy": 0.65, "speed": 0.50, "emphasis": 0.85, "pitch": 0},
+            "👨‍🏫 Professional": {"energy": 0.75, "speed": 0.45, "emphasis": 0.80, "pitch": 0},
+            "🧒 Childlike": {"energy": 1.30, "speed": 0.35, "emphasis": 1.20, "pitch": 5},
+            "🧓 Elderly": {"energy": 0.45, "speed": 0.65, "emphasis": 0.65, "pitch": -3},
+            "😱 Surprised": {"energy": 1.40, "speed": 0.28, "emphasis": 1.50, "pitch": 5},
+            "🤗 Warm": {"energy": 0.90, "speed": 0.50, "emphasis": 1.00, "pitch": 1},
+            "❄️ Cold": {"energy": 0.40, "speed": 0.55, "emphasis": 0.50, "pitch": -2},
+            "🎭 Dramatic": {"energy": 1.80, "speed": 0.40, "emphasis": 1.60, "pitch": 2},
+        }
+        
+        self.preset_var = tk.StringVar(value="🎭 Default (Neutral)")
+        preset_dropdown = ttk.Combobox(
+            self.preset_frame,
+            textvariable=self.preset_var,
+            values=list(self.emotion_presets.keys()),
+            state="readonly",
+            width=30
+        )
+        preset_dropdown.pack(fill=tk.X)
+        preset_dropdown.bind("<<ComboboxSelected>>", self._on_preset_change)
+        
+        # Text mode (hidden by default)
         self.text_frame = ttk.Frame(self.frame)
-        self.text_frame.pack(fill=tk.BOTH, expand=True)
         
         ttk.Label(self.text_frame, text="Describe the expression:").pack(anchor=tk.W, pady=(0, 5))
         
@@ -63,11 +103,11 @@ class ExpressionControlsComponent:
             self.text_frame,
             wrap=tk.WORD,
             font=("Segoe UI", 10),
-            height=2,  # Reduced from 3 to 2
+            height=2,
             relief=tk.SOLID,
             borderwidth=1
         )
-        self.expression_text.pack(fill=tk.X)  # Changed to fill X only, not expand
+        self.expression_text.pack(fill=tk.X)
         self.expression_text.insert("1.0", "e.g., 'happy and energetic' or 'calm narrator'")
         
         # Parameters mode
@@ -241,10 +281,55 @@ class ExpressionControlsComponent:
         
         if mode == "text":
             self.text_frame.pack(fill=tk.BOTH, expand=True)
+            self.preset_frame.pack_forget()
             self.params_frame.pack_forget()
-        else:
+        elif mode == "preset":
+            self.preset_frame.pack(fill=tk.X, pady=(0, 10))
             self.text_frame.pack_forget()
+            self.params_frame.pack_forget()
+        else:  # parameters
+            self.text_frame.pack_forget()
+            self.preset_frame.pack_forget()
             self.params_frame.pack(fill=tk.BOTH, expand=True)
+        
+        self._trigger_callback()
+    
+    def _on_preset_change(self, event=None):
+        """Handle preset selection change"""
+        selected_preset = self.preset_var.get()
+        preset_values = self.emotion_presets.get(selected_preset)
+        
+        if preset_values:
+            # Update parameter variables to match the preset
+            self.energy_var.set(preset_values["energy"])
+            self.speed_var.set(preset_values["speed"])
+            self.emphasis_var.set(preset_values["emphasis"])
+            self.pitch_var.set(preset_values["pitch"])
+            
+            # Update input boxes to match
+            for frame in self.params_frame.winfo_children():
+                for widget in frame.winfo_children():
+                    if isinstance(widget, tk.Frame):
+                        for child in widget.winfo_children():
+                            if isinstance(child, tk.Entry):
+                                var_name = None
+                                # Find which variable this entry is for
+                                if hasattr(frame, 'winfo_children'):
+                                    label = frame.winfo_children()[0]
+                                    if isinstance(label, ttk.Label):
+                                        label_text = label.cget("text")
+                                        if "Energy" in label_text:
+                                            child.delete(0, tk.END)
+                                            child.insert(0, f"{preset_values['energy']:.2f}")
+                                        elif "Speed" in label_text:
+                                            child.delete(0, tk.END)
+                                            child.insert(0, f"{preset_values['speed']:.2f}")
+                                        elif "Emphasis" in label_text:
+                                            child.delete(0, tk.END)
+                                            child.insert(0, f"{preset_values['emphasis']:.2f}")
+                                        elif "Pitch" in label_text:
+                                            child.delete(0, tk.END)
+                                            child.insert(0, f"{preset_values['pitch']:.0f}")
         
         self._trigger_callback()
     
@@ -266,7 +351,19 @@ class ExpressionControlsComponent:
                 "mode": "text",
                 "text": text
             }
-        else:
+        elif mode == "preset":
+            # Return parameters from the selected preset
+            selected_preset = self.preset_var.get()
+            preset_values = self.emotion_presets.get(selected_preset, self.emotion_presets["🎭 Default (Neutral)"])
+            return {
+                "mode": "parameters",  # Treat preset as parameters for generation
+                "preset": selected_preset,
+                "energy": preset_values["energy"],
+                "speed": preset_values["speed"],
+                "emphasis": preset_values["emphasis"],
+                "pitch": preset_values["pitch"]
+            }
+        else:  # parameters
             return {
                 "mode": "parameters",
                 "energy": self.energy_var.get(),       # exaggeration (0.25-2.0)
@@ -277,15 +374,23 @@ class ExpressionControlsComponent:
     
     def set_expression_config(self, config: dict):
         """Set expression configuration"""
-        mode = config.get("mode", "text")
-        self.expression_mode.set(mode)
-        self._on_mode_change()
+        mode = config.get("mode", "preset")
         
-        if mode == "text":
+        # Check if there's a preset specified
+        if "preset" in config:
+            self.expression_mode.set("preset")
+            self.preset_var.set(config["preset"])
+            self._on_mode_change()
+            self._on_preset_change()
+        elif mode == "text":
+            self.expression_mode.set("text")
+            self._on_mode_change()
             text = config.get("text", "")
             self.expression_text.delete("1.0", tk.END)
             self.expression_text.insert("1.0", text)
-        else:
+        else:  # parameters
+            self.expression_mode.set("parameters")
+            self._on_mode_change()
             self.energy_var.set(config.get("energy", 0.70))
             self.speed_var.set(config.get("speed", 0.40))
             self.emphasis_var.set(config.get("emphasis", 0.90))
