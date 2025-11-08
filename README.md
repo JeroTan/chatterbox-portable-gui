@@ -66,6 +66,8 @@ The setup process installs the following main packages:
 ### Audio Processing & Playback
 - **pygame** - Audio playback and scrubbing control
 - **torchaudio** - Audio I/O and WAV file operations
+- **praat-parselmouth** (0.4.6) - Professional pitch shifting with formant preservation
+- **librosa** - Audio analysis and processing (fallback for pitch shifting)
 - **hf_xet** - Faster HuggingFace model downloads
 
 ### Performance
@@ -252,12 +254,22 @@ Generate audio in 23 languages:
 
 #### 4. Expression Controls
 - **Text Mode** - Describe emotion: "happy and energetic", "calm narrator", etc.
-- **Parameter Mode** - Fine-tune emotion, energy, speed, pitch, emphasis
+- **Parameter Mode** - Fine-tune with 4 parameters:
+  - **Energy** (0.25-2.0): Expressiveness level
+  - **Speed** (0.01-1.0): Speech rate control
+  - **Emphasis** (0.05-5.0): Variation in delivery
+  - **Pitch** (-12 to +12 semitones): Post-processing pitch shift using Praat
+    - Uses professional Parselmouth library for natural formant preservation
+    - Best quality within ±6 semitones
+    - Automatic fallback to librosa if needed
 
 #### 5. Audio Generation
-- Real-time progress tracking
+- Smooth progress tracking with exponential decay animation
+- Real-time generation progress (updates every second)
+- Automatic warning for long generation (>30 seconds)
 - Disabled UI during generation to prevent errors
 - Device information display (CPU/GPU)
+- Generation time tracking
 
 #### 6. Built-in Audio Player
 - Play/Pause toggle button
@@ -319,6 +331,23 @@ reference_voices/
 ```
 
 ## 📝 Development History
+
+### Audio Quality & UX Enhancements (November 8, 2025)
+1. ✅ Integrated Parselmouth (Praat) for professional pitch shifting
+   - Natural formant preservation prevents robotic sound
+   - Uses phonetics research-grade algorithms
+   - Automatic fallback to librosa if unavailable
+2. ✅ Improved progress bar animation
+   - Smooth exponential decay formula (divide by 16)
+   - Updates every 1 second for fluid progression
+   - Intelligent phasing: 30%→50%→85%→99%
+3. ✅ Enhanced expression controls with semantic parameter mapping
+   - Energy → Exaggeration (0.25-2.0)
+   - Speed → CFG Weight (0.01-1.0)
+   - Emphasis → Temperature (0.05-5.0)
+   - Pitch → Post-processing (-12 to +12 semitones)
+4. ✅ Added input boxes and reset buttons for all parameters
+5. ✅ Implemented official Chatterbox TTS defaults (0.7, 0.4, 0.9)
 
 ### Voice System Overhaul (November 8, 2025)
 1. ✅ Downloaded all 256 official voice samples from Chatterbox (93 MB)

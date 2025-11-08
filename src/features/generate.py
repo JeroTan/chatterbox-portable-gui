@@ -199,41 +199,228 @@ class TTSGenerator:
 
             
             # Get expression parameters
-            # Chatterbox uses: exaggeration (0.0-1.0) and cfg_weight (0.0-1.0)
+            # Chatterbox TTS API parameters:
+            # - exaggeration (0.25-2.0): Controls expressiveness/exaggeration
+            # - cfg_weight (0.01-1.0): Controls speech rate (lower = faster, higher = slower)
+            # - temperature (0.05-5.0): Controls variation/emphasis in delivery
+            # - pitch: Post-processing pitch shift in semitones (-12 to +12)
             if expression_config.get("mode") == "parameters":
-                # Map our energy (0-100) to exaggeration (0.0-1.0)
-                exaggeration = expression_config.get("energy", 50) / 100.0
-                # Map our emphasis (0-100) to cfg_weight (0.0-1.0)
-                cfg_weight = expression_config.get("emphasis", 30) / 100.0
+                # Use values directly from UI (already in correct ranges)
+                exaggeration = expression_config.get("energy", 0.70)     # 0.25-2.0 (default: 0.7)
+                cfg_weight = expression_config.get("speed", 0.40)        # 0.01-1.0 (default: 0.4) - speech rate
+                temperature = expression_config.get("emphasis", 0.90)    # 0.05-5.0 (default: 0.9) - variation
+                pitch_shift = expression_config.get("pitch", 0)          # semitones
             else:
-                # Default values for text mode
-                exaggeration = 0.5
-                cfg_weight = 0.5
+                # Default values for text mode (Chatterbox official defaults)
+                exaggeration = 0.70
+                cfg_weight = 0.40
+                temperature = 0.90
+                pitch_shift = 0
             
             if progress_callback:
                 status_msg = f"Synthesizing speech on {self.device_name}, please wait..."
                 progress_callback(30, status_msg)
             
+            # Track generation time for helpful messages
+            import time
+            import threading
+            start_time = time.time()
+            long_generation_warned = False
+            generation_complete = False
+            
+            # Smooth progress bar animation
+            current_progress = 30
+            target_progress = 50  # First target
+            
+            def update_progress_smoothly():
+                """Smoothly update progress bar using exponential approach"""
+                nonlocal current_progress, target_progress, long_generation_warned, generation_complete
+                
+                while not generation_complete:
+                    time.sleep(1)  # Update every 1 second
+                    
+                    if generation_complete:
+                        break
+                    
+                    # Calculate new progress using formula:
+                    # remaining = target - current
+                    # new_progress = current + (remaining / 16)
+                    remaining = target_progress - current_progress
+                    
+                    if remaining > 0.5:  # Only update if there's meaningful progress
+                        current_progress = current_progress + (remaining / 16)
+                        
+                        # Update progress bar
+                        if progress_callback:
+                            progress_callback(int(current_progress), status_msg)
+                    
+                    # Check if we've been running for 30 seconds
+                    elapsed = time.time() - start_time
+                    if elapsed >= 30 and not long_generation_warned:
+                        long_generation_warned = True
+                        target_progress = 85  # Move target to 85
+                        if progress_callback:
+                            progress_callback(
+                                int(current_progress), 
+                                "⏳ This is taking a while... Longer or complex text may take 1-2 minutes on CPU"
+                            )
+                        print("   ⏳ Note: Generation taking longer than expected - this is normal for long/complex text on CPU")
+                    
+                    # If we're at 85, move to final phase
+                    if current_progress >= 84 and target_progress == 85:
+                        target_progress = 99  # Approach 99 but never reach 100
+                    
+                    # Cap at 99 until generation actually completes
+                    if current_progress >= 99:
+                        current_progress = 99
+            
+            # Start smooth progress animation
+            progress_thread = threading.Thread(target=update_progress_smoothly, daemon=True)
+            progress_thread.start()
+            
             # Generate audio (GPU: 2-10 seconds, CPU: 10-60 seconds depending on text length)
             if language_code == "en":
                 # Use English-only model for better quality
-                print(f"   Using English model (exaggeration={exaggeration:.2f}, cfg_weight={cfg_weight:.2f})")
+                print(f"   Using English model (exaggeration={exaggeration:.2f}, cfg_weight={cfg_weight:.2f}, temperature={temperature:.2f})")
                 wav = self.model.generate(
                     text,
                     audio_prompt_path=audio_prompt_path,
                     exaggeration=exaggeration,
-                    cfg_weight=cfg_weight
+                    cfg_weight=cfg_weight,
+                    temperature=temperature
                 )
             else:
                 # Use multilingual model
-                print(f"   Using multilingual model (language={language_code}, exaggeration={exaggeration:.2f}, cfg_weight={cfg_weight:.2f})")
+                print(f"   Using multilingual model (language={language_code}, exaggeration={exaggeration:.2f}, cfg_weight={cfg_weight:.2f}, temperature={temperature:.2f})")
                 wav = self.multilingual_model.generate(
                     text,
                     language_id=language_code,
                     audio_prompt_path=audio_prompt_path,
                     exaggeration=exaggeration,
-                    cfg_weight=cfg_weight
+                    cfg_weight=cfg_weight,
+                    temperature=temperature
                 )
+            
+            # Mark that generation completed (stop the progress animation)
+            generation_complete = True
+            generation_time = time.time() - start_time
+            print(f"   ✅ Generation completed in {generation_time:.1f} seconds")
+            
+            # Apply pitch shifting if needed (post-processing using Parselmouth/Praat)
+            if pitch_shift != 0:
+                if progress_callback:
+                    progress_callback(85, f"Applying pitch shift ({pitch_shift:+d} semitones)...")
+                
+                # Warn about extreme pitch shifts
+                if abs(pitch_shift) > 6:
+                    print(f"   ⚠️ Warning: Large pitch shift ({pitch_shift:+d} semitones) may affect quality")
+                    print(f"   💡 Tip: For best results, keep pitch shifts within ±6 semitones")
+                
+                print(f"   Applying pitch shift: {pitch_shift:+d} semitones with Praat (formant preservation)")
+                
+                try:
+                    import parselmouth
+                    from parselmouth.praat import call
+                    import numpy as np
+                    
+                    # Convert tensor to numpy if needed
+                    if hasattr(wav, 'cpu'):
+                        wav_np = wav.cpu().numpy()
+                    else:
+                        wav_np = wav
+                    
+                    # Parselmouth expects shape (samples,) or (channels, samples)
+                    # Handle multi-channel audio
+                    if wav_np.ndim > 1:
+                        # Process each channel separately to preserve quality
+                        shifted_channels = []
+                        for channel in wav_np:
+                            # Create Parselmouth Sound object
+                            sound = parselmouth.Sound(channel, sampling_frequency=self.model.sr)
+                            
+                            # Calculate pitch multiplication factor from semitones
+                            # factor = 2^(semitones/12)
+                            pitch_factor = 2 ** (pitch_shift / 12.0)
+                            
+                            # Use Praat's Manipulation to change pitch while preserving formants
+                            manipulation = call(sound, "To Manipulation", 0.01, 75, 600)
+                            pitch_tier = call(manipulation, "Extract pitch tier")
+                            call(pitch_tier, "Multiply frequencies", sound.xmin, sound.xmax, pitch_factor)
+                            call([pitch_tier, manipulation], "Replace pitch tier")
+                            sound_shifted = call(manipulation, "Get resynthesis (overlap-add)")
+                            
+                            # Get numpy array from result and flatten if needed
+                            shifted_audio = sound_shifted.values
+                            if shifted_audio.ndim > 1:
+                                shifted_audio = shifted_audio.flatten()
+                            shifted_channels.append(shifted_audio)
+                        
+                        wav_np = np.stack(shifted_channels)
+                    else:
+                        # Single channel processing
+                        sound = parselmouth.Sound(wav_np, sampling_frequency=self.model.sr)
+                        
+                        # Calculate pitch multiplication factor
+                        pitch_factor = 2 ** (pitch_shift / 12.0)
+                        
+                        # Apply pitch manipulation with formant preservation
+                        manipulation = call(sound, "To Manipulation", 0.01, 75, 600)
+                        pitch_tier = call(manipulation, "Extract pitch tier")
+                        call(pitch_tier, "Multiply frequencies", sound.xmin, sound.xmax, pitch_factor)
+                        call([pitch_tier, manipulation], "Replace pitch tier")
+                        sound_shifted = call(manipulation, "Get resynthesis (overlap-add)")
+                        
+                        # Get numpy array and flatten if needed
+                        wav_np = sound_shifted.values
+                        if wav_np.ndim > 1:
+                            wav_np = wav_np.flatten()
+                    
+                    # Convert back to tensor if original was tensor
+                    if hasattr(wav, 'cpu'):
+                        import torch
+                        wav = torch.from_numpy(wav_np).to(wav.device)
+                    else:
+                        wav = wav_np
+                    
+                    print(f"   ✅ Pitch shift applied with formant preservation (Praat)")
+                    
+                except ImportError:
+                    print("   ⚠️ Parselmouth not installed. Falling back to librosa...")
+                    print("   Install with: pip install praat-parselmouth")
+                    
+                    # Fallback to librosa
+                    import librosa
+                    import numpy as np
+                    
+                    if hasattr(wav, 'cpu'):
+                        wav_np = wav.cpu().numpy()
+                    else:
+                        wav_np = wav
+                    
+                    if wav_np.ndim > 1:
+                        shifted_channels = []
+                        for channel in wav_np:
+                            shifted = librosa.effects.pitch_shift(
+                                channel, sr=self.model.sr, n_steps=pitch_shift, res_type='soxr_hq'
+                            )
+                            shifted_channels.append(shifted)
+                        wav_np = np.stack(shifted_channels)
+                    else:
+                        wav_np = librosa.effects.pitch_shift(
+                            wav_np, sr=self.model.sr, n_steps=pitch_shift, res_type='soxr_hq'
+                        )
+                    
+                    if hasattr(wav, 'cpu'):
+                        import torch
+                        wav = torch.from_numpy(wav_np).to(wav.device)
+                    else:
+                        wav = wav_np
+                    
+                    print(f"   ✅ Pitch shift applied (librosa fallback)")
+                    
+                except Exception as e:
+                    print(f"   ❌ Pitch shift failed: {str(e)}")
+                    print(f"   Continuing with original audio...")
             
             if progress_callback:
                 progress_callback(90, "Saving audio file...")
