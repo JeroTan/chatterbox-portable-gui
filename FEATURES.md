@@ -6,9 +6,43 @@ Complete list of features and capabilities.
 
 ---
 
+## 🎨 User Interface
+
+### 1. Dark Mode Theme (Default)
+**Location:** Window → Appearance Menu
+
+Professional dark mode using Sun Valley theme (sv-ttk):
+
+- **Dark Mode (Default)**
+  - Modern dark gray backgrounds (#1e1e1e, #2d2d30)
+  - High-contrast light text (#d4d4d4)
+  - Blue accent buttons (#0e639c)
+  - Comfortable for extended use
+  - Reduces eye strain
+
+- **Light Mode**
+  - Clean white backgrounds
+  - Dark text for readability
+  - Blue accent buttons (#007acc)
+  - Traditional UI aesthetic
+
+**Features:**
+- **Menu Access:** Window → Appearance → 🌙 Dark / ☀️ Light
+- **Instant Switching:** Theme applies immediately
+- **Persistent:** Saved with project files (.cbx)
+- **Comprehensive:** Applies to all UI components
+  - Labels, buttons, entries
+  - Dropdowns, radio buttons
+  - Text inputs, scrollbars
+  - Device selector dialog
+  - Loading screen
+- **Proper Contrast:** All text readable in both modes
+
+---
+
 ## 🚀 Core Features
 
-### 1. Device Selection (GPU/CPU)
+### 2. Device Selection (GPU/CPU)
 **Location:** Startup Dialog
 
 Choose your processing device for audio generation:
@@ -31,13 +65,13 @@ Choose your processing device for audio generation:
 2. Window auto-sizes to fit content
 3. CPU shown first as recommended option
 4. GPU info displayed with green text if available
-5. Closing dialog (X button) exits app without loading
+- Closing dialog (X button) exits app without loading
 
 ---
 
 ## 🌍 Multilingual Support
 
-### 2. Language Selection
+### 3. Language Selection
 **Location:** Language Selector Component
 
 Generate speech in 23 languages:
@@ -77,7 +111,7 @@ Generate speech in 23 languages:
 
 ## 🎙️ Voice Selection
 
-### 3. Voice Modes
+### 4. Voice Modes
 **Location:** Voice Selector Component
 
 Two ways to select voices:
@@ -120,28 +154,61 @@ reference_voices/
 
 ## 🎭 Expression Controls
 
-### 4. Expression Modes
+### 5. Expression Modes
 **Location:** Expression Controls Component
 
-#### Text Mode (Default)
+#### Preset Mode (Default)
+20 pre-tuned emotion presets with optimized parameters:
+
+**Available Presets:**
+- 🎭 Default (Neutral) - Balanced, natural delivery
+- 😊 Happy - Upbeat and cheerful
+- 😢 Sad - Somber and melancholic
+- 😠 Angry - Intense and forceful
+- 😨 Fearful - Nervous and hesitant
+- 😮 Surprised - Shocked and reactive
+- 😑 Bored - Monotone and uninterested
+- 🥱 Tired - Low energy, slow delivery
+- 😌 Calm - Peaceful and soothing
+- 😁 Excited - High energy and enthusiastic
+- 🥰 Loving - Warm and affectionate
+- 🤔 Thoughtful - Contemplative and measured
+- 😤 Frustrated - Irritated and tense
+- 😂 Amused - Light and playful
+- 😰 Anxious - Worried and restless
+- 😔 Melancholic - Deeply sad and reflective
+- 💪 Confident - Strong and assertive
+- 😓 Regretful - Apologetic and remorseful
+- 😏 Sarcastic - Dry and ironic
+- 🎊 Joyful - Exuberant and celebratory
+
+**Features:**
+- Easy selection via dropdown
+- Each preset has tuned energy, speed, emphasis, and pitch values
+- Consistent results across generations
+- Best for quick, reliable emotional performances
+
+#### Text Mode
 - Free-form text description of emotion
 - Examples: "happy and energetic", "calm narrator", "serious and professional"
-- Placeholder text replaced with "default" if not changed
 - Natural language processing
 
 #### Parameter Mode
-Fine-tune voice characteristics:
-- **Emotion:** Predefined emotion selection
-- **Energy:** 0-100 slider
-- **Speed:** 0.5-2.0x multiplier
-- **Pitch:** -12 to +12 semitones
-- **Emphasis:** 0-100 intensity
+Fine-tune voice characteristics manually:
+- **Energy (0.25-2.0):** Expressiveness level
+- **Speed (0.01-1.0):** Speech rate control
+- **Emphasis (0.05-5.0):** Variation in delivery
+- **Pitch (-12 to +12 semitones):** Post-processing pitch shift
+  - Uses Praat (Parselmouth) for natural formant preservation
+  - Input boxes for precise numeric values
+  - Reset buttons to restore defaults
+  - Slider controls for visual feedback
 
 ---
 
 ## 🎵 Audio Generation
 
-### 5. TTS Generation
+### 6. TTS Generation
 **Location:** Generate Button
 
 **Features:**
@@ -172,7 +239,7 @@ Generating audio...
 
 ## 🔊 Audio Playback
 
-### 6. Built-in Audio Player
+### 7. Built-in Audio Player
 **Location:** Audio Player Component
 
 **Features:**
@@ -193,7 +260,43 @@ Generating audio...
 
 ## 💾 File Management
 
-### 7. Auto-Export System
+### 8. Project Management System
+**Location:** File Menu
+
+**Features:**
+- **Save Project (Ctrl+S)** - Save all settings to .cbx file
+- **Load Project (Ctrl+O)** - Restore complete state from file
+- **New Project (Ctrl+N)** - Reset to defaults
+- **Save As** - Save with new filename
+- **Unsaved Changes Tracking** - Visual indicator when modified
+- **Default Format:** .cbx (Chatterbox project files)
+- **Loading Indicator:** "Loading save file..." message during file dialog
+
+**Saved State Includes:**
+- Text input content
+- Language selection
+- Voice mode and selected voice
+- Expression mode (preset/parameters/text)
+- Selected emotion preset
+- Parameter values (energy, speed, emphasis, pitch)
+- Output folder path
+- Theme preference (dark/light)
+
+**User Flow:**
+1. Make changes to project
+2. File → Save (or Ctrl+S)
+3. Choose location and filename
+4. Project saved as .cbx file
+5. Load anytime with File → Open (Ctrl+O)
+
+**Protection Mechanisms:**
+- Prevents callback interference during loading
+- Prevents infinite observer loops
+- Focus management prevents text clearing
+- Placeholder system handles empty states
+- Loading flags block state updates
+
+### 9. Auto-Export System
 **Location:** Automatic on Generation
 
 **Features:**
@@ -217,7 +320,7 @@ output/
 
 ## 🎨 User Interface
 
-### 8. Component Architecture
+### 10. Component Architecture
 **Philosophy:** Modular, reusable components
 
 **Components:**

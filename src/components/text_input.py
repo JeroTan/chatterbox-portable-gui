@@ -31,6 +31,9 @@ class TextInputComponent:
         # Track if we're programmatically setting text
         self.is_programmatic_change = False
         
+        # Store current theme for placeholder color
+        self.current_theme = None
+        
         # Container frame
         self.frame = ttk.LabelFrame(parent, text="Text Input", padding="10")
         
@@ -70,14 +73,18 @@ class TextInputComponent:
     def _show_placeholder(self):
         """Show placeholder text"""
         self.text_widget.insert("1.0", self.placeholder)
-        self.text_widget.config(fg="gray")
+        # Use theme color if available, otherwise default to gray
+        placeholder_color = self.current_theme.get("placeholder_fg", "gray") if self.current_theme else "gray"
+        self.text_widget.config(fg=placeholder_color)
         self.is_placeholder_showing = True
     
     def _on_focus_in(self, event):
         """Remove placeholder on focus"""
         if self.is_placeholder_showing:
             self.text_widget.delete("1.0", tk.END)
-            self.text_widget.config(fg="black")
+            # Use theme color if available, otherwise default to black
+            text_color = self.current_theme.get("input_fg", "black") if self.current_theme else "black"
+            self.text_widget.config(fg=text_color)
             self.is_placeholder_showing = False
     
     def _on_focus_out(self, event):
@@ -161,3 +168,21 @@ class TextInputComponent:
             self._show_placeholder()
         finally:
             self.is_programmatic_change = False
+    
+    def apply_theme(self, theme: dict):
+        """Apply theme colors to this component"""
+        # Store theme for future use
+        self.current_theme = theme
+        
+        # ttk.LabelFrame doesn't support bg, only style
+        # We'll theme the text widget which is the main visual element
+        self.text_widget.config(
+            bg=theme["input_bg"],
+            fg=theme["input_fg"],
+            insertbackground=theme["input_fg"],
+            selectbackground=theme["highlight_bg"],
+            selectforeground=theme["highlight_fg"]
+        )
+        # Update placeholder color if currently showing
+        if self.is_placeholder_showing:
+            self.text_widget.config(fg=theme["placeholder_fg"])

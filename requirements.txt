@@ -40,8 +40,18 @@ einops>=0.6.1
 # ============================================
 # GUI FRAMEWORK
 # ============================================
-# Gradio - Web-based GUI (Recommended for v1.0)
-gradio==5.44.1
+# Desktop GUI with Tkinter (Built-in)
+# Modern theme for dark/light mode
+sv-ttk==2.6.1
+
+# Audio playback and scrubbing
+pygame>=2.6.0
+
+# Professional pitch shifting with formant preservation
+praat-parselmouth>=0.4.6
+
+# Gradio - Web-based GUI (Optional, not used in desktop version)
+# gradio==5.44.1
 
 # Web Framework Dependencies (Auto-installed with Gradio)
 fastapi>=0.115.2

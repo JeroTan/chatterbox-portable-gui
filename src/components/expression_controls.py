@@ -398,3 +398,8 @@ class ExpressionControlsComponent:
             self.speed_var.set(config.get("speed", 0.40))
             self.emphasis_var.set(config.get("emphasis", 0.90))
             self.pitch_var.set(config.get("pitch", 0))
+    
+    def apply_theme(self, theme: dict):
+        """Apply theme colors to this component"""
+        # Stub - components will be themed via ttk styles
+        pass

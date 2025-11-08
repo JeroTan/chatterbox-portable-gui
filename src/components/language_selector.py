@@ -77,5 +77,10 @@ class LanguageSelectorComponent:
         language_name = self.languages.get(language_code)
         if language_name:
             self.dropdown.set_value(language_name)
-
+    
+    def apply_theme(self, theme: dict):
+        """Apply theme colors to this component"""
+        # Apply to dropdown component
+        if hasattr(self.dropdown, 'apply_theme'):
+            self.dropdown.apply_theme(theme)
 

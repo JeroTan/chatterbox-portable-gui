@@ -39,6 +39,9 @@ class AppState:
         # Output settings
         self.output_folder: Path = Path("./output")
         
+        # Appearance settings
+        self.current_theme: str = "dark"  # "dark" or "light"
+        
         # Generated audio
         self.generated_audio_path: Optional[Path] = None
         
@@ -84,6 +87,7 @@ class AppState:
             "pitch": self.pitch,
             "emphasis": self.emphasis,
             "output_folder": str(self.output_folder),
+            "current_theme": self.current_theme,
         }
     
     def load_state_dict(self, state_dict: Dict[str, Any]):

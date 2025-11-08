@@ -12,6 +12,7 @@ from tkinter import ttk, filedialog, messagebox
 from pathlib import Path
 import tempfile
 import threading
+import sv_ttk
 
 # Import components
 from components.text_input import TextInputComponent
@@ -30,6 +31,7 @@ from features.export import export_audio, preview_audio
 # Import utilities
 from utils.config import *
 from utils.file_utils import generate_audio_filename, ensure_folder_exists
+from utils.themes import get_theme
 from store.state import app_state
 
 
@@ -82,6 +84,29 @@ class ChatterboxApp:
         audio_menu.add_command(label="Preview", command=self._preview_audio)
         audio_menu.add_command(label="Export...", command=self._export_audio)
         
+        # Window menu for appearance settings
+        window_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Window", menu=window_menu)
+        
+        # Appearance submenu
+        appearance_menu = tk.Menu(window_menu, tearoff=0)
+        window_menu.add_cascade(label="Appearance", menu=appearance_menu)
+        
+        # Theme variable
+        self.theme_var = tk.StringVar(value="dark")
+        appearance_menu.add_radiobutton(
+            label="🌙 Dark", 
+            variable=self.theme_var, 
+            value="dark",
+            command=lambda: self._on_theme_change("dark")
+        )
+        appearance_menu.add_radiobutton(
+            label="☀️ Light", 
+            variable=self.theme_var, 
+            value="light",
+            command=lambda: self._on_theme_change("light")
+        )
+        
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Help", menu=help_menu)
         help_menu.add_command(label="About", command=self._show_about)
@@ -91,8 +116,17 @@ class ChatterboxApp:
         main_container = ttk.Frame(self.root, padding="10")
         main_container.pack(fill=tk.BOTH, expand=True)
         
+        # Setup main controls (no tabs)
+        self._setup_controls(main_container)
+        
+        # Apply initial theme
+        self._apply_theme()
+    
+    def _setup_controls(self, parent):
+        """Setup the main controls"""
+        
         # Left: inputs
-        left = ttk.Frame(main_container)
+        left = ttk.Frame(parent)
         left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
         
         self.text_input = TextInputComponent(left, on_generate=self._generate_audio, on_text_change=self._on_text_change)
@@ -113,7 +147,7 @@ class ChatterboxApp:
         self.expression_controls.frame.pack(fill=tk.X)  # Changed: Don't expand vertically - keep text input size stable
         
         # Right: actions
-        right = ttk.Frame(main_container, width=300)
+        right = ttk.Frame(parent, width=300)
         right.pack(side=tk.RIGHT, fill=tk.BOTH, padx=(5, 0))
         right.pack_propagate(False)
         
@@ -224,6 +258,9 @@ class ChatterboxApp:
             # Update output folder
             if hasattr(self, 'output_folder_var'):
                 self.output_folder_var.set(str(app_state.output_folder))
+            
+            # Update theme
+            self._apply_theme()
             
             # Update text input LAST to avoid it being cleared by other component callbacks
             if hasattr(self, 'text_input'):
@@ -411,10 +448,8 @@ class ChatterboxApp:
         """Handle text input change"""
         # Skip if syncing OR if state is loading to prevent infinite loops and overwrites
         if self.is_syncing or app_state._loading:
-            print(f"⏭️ Skipping text change (syncing={self.is_syncing}, loading={app_state._loading})")
             return
             
-        print(f"💬 Text changed: {len(text)} characters")
         app_state.update(text_input=text)
     
     def _on_voice_change(self):
@@ -439,6 +474,40 @@ class ChatterboxApp:
             )
         else:  # parameters
             app_state.update(expression_mode="parameters", **{k: v for k, v in config.items() if k != "mode"})
+    
+    def _on_theme_change(self, theme_name: str):
+        """Handle theme change"""
+        app_state.update(current_theme=theme_name)
+        self._apply_theme()
+    
+    def _apply_theme(self):
+        """Apply current theme to all components"""
+        theme = get_theme(app_state.current_theme)
+        
+        # Use sv_ttk for proper dark/light mode theming
+        if app_state.current_theme == "dark":
+            sv_ttk.set_theme("dark")
+        else:
+            sv_ttk.set_theme("light")
+        
+        # Apply to root window
+        self.root.config(bg=theme["bg"])
+        
+        # Apply to components that support custom theming
+        if hasattr(self, 'text_input'):
+            self.text_input.apply_theme(theme)
+        if hasattr(self, 'language_selector'):
+            self.language_selector.apply_theme(theme)
+        if hasattr(self, 'voice_selector'):
+            self.voice_selector.apply_theme(theme)
+        if hasattr(self, 'expression_controls'):
+            self.expression_controls.apply_theme(theme)
+        if hasattr(self, 'audio_player'):
+            self.audio_player.apply_theme(theme)
+        
+        # Update menu checkmark
+        if hasattr(self, 'theme_var'):
+            self.theme_var.set(app_state.current_theme)
     
     # Project management
     def _new_project(self):

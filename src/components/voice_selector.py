@@ -277,3 +277,8 @@ class VoiceSelectorComponent:
                 self.voice_dropdown.set_value(voice)
         elif mode == "custom" and custom_path:
             self.custom_path_var.set(str(custom_path))
+    
+    def apply_theme(self, theme: dict):
+        """Apply theme colors to this component"""
+        # Stub - components will be themed via ttk styles
+        pass

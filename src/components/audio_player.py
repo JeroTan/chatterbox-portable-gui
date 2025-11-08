@@ -386,3 +386,8 @@ class AudioPlayerComponent:
         self.status_var.set("No audio loaded")
         self.play_pause_btn.config(state=tk.DISABLED, text="▶ Play")
         self.stop_btn.config(state=tk.DISABLED)
+    
+    def apply_theme(self, theme: dict):
+        """Apply theme colors to this component"""
+        # Stub - components will be themed via ttk styles
+        pass

@@ -62,6 +62,7 @@ The setup process installs the following main packages:
 
 ### Desktop GUI
 - **tkinter** (built-in) - Native desktop interface with custom components
+- **sv-ttk** (2.6.1) - Modern Sun Valley theme for dark/light mode support
 
 ### Audio Processing & Playback
 - **pygame** - Audio playback and scrubbing control
@@ -232,17 +233,24 @@ python src/main.py
 
 ### Application Features
 
-#### 1. Device Selection (Startup)
+#### 1. Dark Mode Theme (Default)
+- **Modern UI** - Professional dark mode using Sun Valley theme
+- **Theme Switching** - Switch between Dark (🌙) and Light (☀️) modes
+- **Menu Access** - Window → Appearance → Dark/Light
+- **Persistent** - Theme preference saved with projects
+- **Accessible** - Proper contrast and readability
+
+#### 2. Device Selection (Startup)
 On first launch, choose your processing device:
 - **CPU (Recommended)** - Slower (10-60s) but more stable and reliable
 - **GPU** - Faster (2-10s) if you have NVIDIA GPU with CUDA support
 
-#### 2. Multilingual Support
+#### 3. Multilingual Support
 Generate audio in 23 languages:
 - English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese
 - Arabic, Danish, Dutch, Finnish, Greek, Hebrew, Hindi, Malay, Norwegian, Polish, Swedish, Swahili, Turkish
 
-#### 3. Voice Selection
+#### 4. Voice Selection
 - **Predefined Voices** - Dynamically loaded from `src/assets/reference_voices/[language]/`
   - Voices update automatically when language changes
   - Filter by Male/Female/All with fancy grid dropdown
@@ -252,7 +260,7 @@ Generate audio in 23 languages:
 - **Default**: Male voice (male_default.wav for selected language)
 - **256 voice samples** available in `src/assets/downloads/` for manual review
 
-#### 4. Expression Controls
+#### 5. Expression Controls
 - **Text Mode** - Describe emotion: "happy and energetic", "calm narrator", etc.
 - **Parameter Mode** - Fine-tune with 4 parameters:
   - **Energy** (0.25-2.0): Expressiveness level
@@ -262,8 +270,13 @@ Generate audio in 23 languages:
     - Uses professional Parselmouth library for natural formant preservation
     - Best quality within ±6 semitones
     - Automatic fallback to librosa if needed
+- **Preset Mode (Default)** - 20 emotion presets with tuned parameters:
+  - 🎭 Default (Neutral), 😊 Happy, 😢 Sad, 😠 Angry, 😨 Fearful
+  - 😮 Surprised, 😑 Bored, 🥱 Tired, 😌 Calm, 😁 Excited
+  - 🥰 Loving, 🤔 Thoughtful, 😤 Frustrated, 😂 Amused, 😰 Anxious
+  - 😔 Melancholic, 💪 Confident, 😓 Regretful, 😏 Sarcastic, 🎊 Joyful
 
-#### 5. Audio Generation
+#### 6. Audio Generation
 - Smooth progress tracking with exponential decay animation
 - Real-time generation progress (updates every second)
 - Automatic warning for long generation (>30 seconds)
@@ -271,13 +284,19 @@ Generate audio in 23 languages:
 - Device information display (CPU/GPU)
 - Generation time tracking
 
-#### 6. Built-in Audio Player
+#### 7. Project Management
+- **Save Projects** - Save all settings to .cbx files
+- **Load Projects** - Restore complete state from saved files
+- **Auto-save indicator** - Track unsaved changes
+- **Keyboard shortcuts** - Ctrl+S (Save), Ctrl+O (Open), Ctrl+N (New)
+
+#### 8. Preview
 - Play/Pause toggle button
 - Audio scrubber with millisecond precision (M:SS.mmm)
 - Click-to-seek and drag scrubber
 - Real-time position updates
 
-#### 7. Auto-Export
+#### 9. Project Management
 - Saves to `output/` folder automatically
 - Smart naming: `audio_1.wav`, `audio_2.wav`, etc.
 - Temporary files cleaned up automatically
@@ -331,6 +350,29 @@ reference_voices/
 ```
 
 ## 📝 Development History
+
+### Dark Mode & UI Polish (November 8, 2025)
+1. ✅ Implemented professional dark mode using sv-ttk (Sun Valley theme)
+2. ✅ Added theme switcher in Window → Appearance menu
+3. ✅ Dark mode as default with proper contrast
+4. ✅ Theme persists in project files
+5. ✅ Fixed device selector to match dark theme
+6. ✅ Proper button visibility and text contrast
+
+### Expression Presets System (November 8, 2025)
+1. ✅ Added 20 emotion presets with pre-tuned parameters
+2. ✅ Preset mode as default (easier for users)
+3. ✅ Tired preset with minimum values for sleepy effect
+4. ✅ Parameter mode still available for fine control
+
+### Project Management System (November 8, 2025)
+1. ✅ Implemented complete save/load functionality
+2. ✅ Changed default file format to .cbx
+3. ✅ Fixed text input loading with multiple protection mechanisms
+4. ✅ Added "Loading save file..." placeholder during file dialog
+5. ✅ State management with observer pattern
+6. ✅ Prevented duplicate generation on laptop wake
+7. ✅ Keyboard shortcuts (Ctrl+S, Ctrl+O, Ctrl+N)
 
 ### Audio Quality & UX Enhancements (November 8, 2025)
 1. ✅ Integrated Parselmouth (Praat) for professional pitch shifting
