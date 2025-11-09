@@ -4,6 +4,8 @@
 
 A desktop Text-to-Speech application using Chatterbox TTS, created to generate character voices for the **Pixuu's Pixel Adventure** animation project.
 
+![Chatterbox TTS GUI Screenshot](src/assets/screenshot.png)
+
 ## 📋 Prerequisites
 
 - **Python 3.11** (Required - NOT 3.12, 3.13, or 3.14)

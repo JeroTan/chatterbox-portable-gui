@@ -37,20 +37,31 @@ def clean_build():
     
     # Clean build directory
     if BUILD_DIR.exists():
-        shutil.rmtree(BUILD_DIR)
-        print(f"   Removed {BUILD_DIR}")
+        try:
+            shutil.rmtree(BUILD_DIR)
+            print(f"   Removed {BUILD_DIR}")
+        except PermissionError:
+            print(f"   ⚠️ Could not remove {BUILD_DIR} (file in use)")
+            print(f"   💡 Tip: Close chatterbox-gui.exe if running")
+            # Try to continue anyway
     
     # Clean PyInstaller generated folders in root
     for directory in [Path("dist"), Path("__pycache__")]:
         if directory.exists():
-            shutil.rmtree(directory)
-            print(f"   Removed {directory}")
+            try:
+                shutil.rmtree(directory)
+                print(f"   Removed {directory}")
+            except PermissionError:
+                print(f"   ⚠️ Could not remove {directory} (file in use)")
     
     # Remove .spec file
     spec_file = Path(f"{APP_NAME}.spec")
     if spec_file.exists():
-        spec_file.unlink()
-        print(f"   Removed {spec_file}")
+        try:
+            spec_file.unlink()
+            print(f"   Removed {spec_file}")
+        except PermissionError:
+            print(f"   ⚠️ Could not remove {spec_file} (file in use)")
     
     print("✅ Clean complete")
 
@@ -70,9 +81,17 @@ a = Analysis(
         ('src/assets/reference_voices', 'assets/reference_voices'),  # Voice samples
         ('src/assets/downloads', 'assets/downloads'),  # TTS model cache folder
         ('src/assets/icon', 'assets/icon'),  # Application icons
+        # Bundle perth pretrained checkpoint files
+        (r'.venv/Lib/site-packages/perth/perth_net/pretrained', 'perth/perth_net/pretrained'),
+        # Bundle pkuseg dictionary files for multilingual TTS
+        (r'.venv/Lib/site-packages/pkuseg/dicts', 'pkuseg/dicts'),
+        (r'.venv/Lib/site-packages/pkuseg/models', 'pkuseg/models'),
+        (r'.venv/Lib/site-packages/pkuseg/postag', 'pkuseg/postag'),
     ],
     hiddenimports=[
-        'chatterbox_tts',
+        'chatterbox',
+        'chatterbox.tts',
+        'chatterbox.mtl_tts',
         'torch',
         'torchaudio',
         'transformers',
@@ -82,7 +101,6 @@ a = Analysis(
         'sv_ttk',
         'pygame',
         'pygame.mixer',
-        'praat',
         'parselmouth',
         'librosa',
         'soundfile',
@@ -98,7 +116,12 @@ a = Analysis(
         'tokenizers',
         'regex',
         'sentencepiece',
-        'protobuf',
+        'pkuseg',
+        'pkuseg.feature_extractor',
+        'pkuseg.inference',
+        'perth',
+        'perth.perth_net',
+        'perth.perth_net.perth_net_implicit',
     ],
     hookspath=[],
     hooksconfig={{}},
@@ -133,7 +156,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,  # GUI application - no console window
+    console=True,  # Show console window for debugging logs
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

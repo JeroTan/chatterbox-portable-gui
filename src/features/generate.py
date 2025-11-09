@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 import traceback
 import torchaudio as ta
+from tkinter import messagebox
 
 
 class TTSGenerator:
@@ -50,10 +51,38 @@ class TTSGenerator:
                 print("⚠️ Loading cancelled by user")
                 return False
             
+            # Set cache directory to user's home folder (works in both dev and frozen exe)
+            import os
+            cache_dir = Path.home() / ".cache" / "chatterbox_tts"
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            os.environ['HF_HOME'] = str(cache_dir)
+            os.environ['TRANSFORMERS_CACHE'] = str(cache_dir / "transformers")
+            print(f"📁 Cache directory: {cache_dir}")
+            
             # Import chatterbox-tts
-            from chatterbox.tts import ChatterboxTTS
-            from chatterbox.mtl_tts import ChatterboxMultilingualTTS
-            import torch
+            print("📦 Attempting to import chatterbox modules...")
+            try:
+                print("  - Importing torch...")
+                import torch
+                print(f"  ✅ Torch version: {torch.__version__}")
+                
+                print("  - Importing ChatterboxTTS...")
+                from chatterbox.tts import ChatterboxTTS
+                print("  ✅ ChatterboxTTS imported")
+                
+                print("  - Importing ChatterboxMultilingualTTS...")
+                from chatterbox.mtl_tts import ChatterboxMultilingualTTS
+                print("  ✅ ChatterboxMultilingualTTS imported")
+                
+            except ImportError as ie:
+                error_msg = f"Failed to import chatterbox_tts library: {ie}"
+                print(f"❌ {error_msg}")
+                print("Full traceback:")
+                traceback.print_exc()
+                if loading_screen:
+                    loading_screen.update_progress(0, "❌ Missing chatterbox_tts library")
+                messagebox.showerror("Import Error", f"{error_msg}\n\nPlease ensure chatterbox_tts is installed:\npip install chatterbox-tts")
+                return False
             
             # Handle device selection
             if force_device:
@@ -109,7 +138,21 @@ class TTSGenerator:
                     return False
                 
                 # Initialize English model
-                self.model = ChatterboxTTS.from_pretrained(device=self.device)
+                print("📥 Calling ChatterboxTTS.from_pretrained()...")
+                print(f"   Device: {self.device}")
+                print(f"   Cache dir: {cache_dir}")
+                print(f"   Cache dir exists: {cache_dir.exists()}")
+                if cache_dir.exists():
+                    print(f"   Cache dir contents: {list(cache_dir.iterdir())[:5]}")  # First 5 items
+                
+                try:
+                    self.model = ChatterboxTTS.from_pretrained(device=self.device)
+                    print("✅ English model loaded successfully")
+                except Exception as model_error:
+                    print(f"❌ Failed to load English model: {model_error}")
+                    print(f"   Error type: {type(model_error).__name__}")
+                    traceback.print_exc()
+                    raise  # Re-raise to be caught by outer except
                 
                 if loading_screen:
                     loading_screen.update_progress(50, "🌍 Loading Multilingual TTS model...")
@@ -120,7 +163,15 @@ class TTSGenerator:
                     return False
                 
                 # Initialize multilingual model
-                self.multilingual_model = ChatterboxMultilingualTTS.from_pretrained(device=self.device)
+                print("📥 Calling ChatterboxMultilingualTTS.from_pretrained()...")
+                try:
+                    self.multilingual_model = ChatterboxMultilingualTTS.from_pretrained(device=self.device)
+                    print("✅ Multilingual model loaded successfully")
+                except Exception as model_error:
+                    print(f"❌ Failed to load Multilingual model: {model_error}")
+                    print(f"   Error type: {type(model_error).__name__}")
+                    traceback.print_exc()
+                    raise  # Re-raise to be caught by outer except
                 
                 if loading_screen:
                     loading_screen.update_progress(90, "✨ Finalizing setup...")

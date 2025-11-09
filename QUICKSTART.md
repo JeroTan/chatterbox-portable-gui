@@ -18,8 +18,8 @@ This is a desktop TTS (Text-to-Speech) application built with Chatterbox TTS, cr
 
 ### Step 2: Clone Repository
 ```powershell
-git clone https://github.com/JeroTan/chatterbox-pixuus-pixel-adventure.git
-cd chatterbox-codebase
+git clone https://github.com/JeroTan/chatterbox-portable-gui.git
+cd chatterbox-portable-gui
 ```
 
 ### Step 3: Automated Setup (Recommended)
