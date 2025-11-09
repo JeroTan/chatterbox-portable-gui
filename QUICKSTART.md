@@ -52,7 +52,7 @@ Every time you work on the project:
 
 ```powershell
 # 1. Navigate to project
-cd path\to\chatterbox-codebase
+cd path\to\chatterbox-portable-gui
 
 # 2. Activate virtual environment
 .venv\Scripts\activate

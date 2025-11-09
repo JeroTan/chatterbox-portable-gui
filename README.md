@@ -18,8 +18,8 @@ A desktop Text-to-Speech application using Chatterbox TTS, created to generate c
 
 1. **Clone the repository**
    ```powershell
-   git clone <your-repo-url>
-   cd chatterbox-codebase
+   git clone https://github.com/JeroTan/chatterbox-portable-gui.git
+   cd chatterbox-portable-gui
    ```
 
 2. **Run the setup script** (Recommended - Like `npm install`)
@@ -122,7 +122,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ## 📁 Project Structure
 
 ```
-chatterbox-codebase/
+chatterbox-portable-gui/
 ├── .venv/                          # Virtual environment (DO NOT commit)
 ├── .git/                           # Git repository
 ├── src/                            # Source code

@@ -117,7 +117,7 @@ Generation complete → Textbox re-enabled
 
 **Example:**
 ```
-📁 Output: C:\Projects\chatterbox-codebase\outputs\
+📁 Output: C:\Projects\chatterbox-portable-gui\outputs\
 ```
 
 ---
@@ -403,7 +403,7 @@ Examples:
 
 ### Folder Structure
 ```
-chatterbox-codebase/
+chatterbox-portable-gui/
 ├── outputs/              ← Generated audio files
 │   ├── 20251107_143052_hello_world.wav
 │   └── 20251107_150312_welcome_to.wav

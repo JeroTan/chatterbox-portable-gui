@@ -45,7 +45,7 @@ New-Item -ItemType Directory -Path "app", "outputs", "projects", "reference_audi
 2. Find **Python 3.11** (latest 3.11.x version)
 3. Download **Windows embeddable package (64-bit)**
    - File name: `python-3.11.x-embed-amd64.zip`
-4. Extract to `ChatterboxTTS-Portable/python311/`
+4. Extract to `./python311/`
 
 ### Step 3: Enable pip in Embedded Python
 
@@ -56,7 +56,7 @@ cd ChatterboxTTS-Portable
 Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "get-pip.py"
 
 # Uncomment site-packages in python311._pth
-# Edit: python311/python311._pth
+# Edit: ./python311/python311._pth
 # Uncomment the line: import site
 
 # Install pip
@@ -66,7 +66,7 @@ Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "get-pip.
 Remove-Item get-pip.py
 ```
 
-**Or manually edit `python311/python311._pth`:**
+**Or manually edit `./python311/python311._pth`:**
 ```
 python311.zip
 .
@@ -88,7 +88,7 @@ import site  ← Remove the # if present
 
 ```powershell
 # Copy your GUI code
-Copy-Item -Path "..\src\main.py" -Destination "app\main.py"
+Copy-Item -Path "..\src\main.py" -Destination ".\app\main.py"
 
 # Copy any other necessary files
 Copy-Item -Path "..\*.md" -Destination "."
@@ -113,7 +113,7 @@ start "" python311\python.exe app\main.py
 exit
 ```
 
-Save this as `ChatterboxTTS-Portable/ChatterboxTTS.bat`
+Save this as `./ChatterboxTTS.bat`
 
 ### Step 7: Create README for Users
 
@@ -196,7 +196,7 @@ pip install pyinstaller
 
 ```powershell
 # Navigate to your project
-cd path\to\chatterbox-codebase
+cd path\to\chatterbox-portable-gui
 
 # Activate virtual environment
 .venv\Scripts\activate
@@ -216,7 +216,7 @@ pyinstaller --onefile --windowed --hidden-import=chatterbox_tts src/main.py --na
 
 ### Result
 
-- `.exe` file created in `dist/` folder
+- `.exe` file created in `./dist/` folder
 - **Size: 3-5 GB** (includes everything)
 - Single file to distribute
 - Slower first startup (unpacking)
@@ -353,7 +353,7 @@ Before distributing:
 ## 🐛 Common Issues & Solutions
 
 ### Issue: "Python not found"
-**Solution:** Make sure `python311` folder exists and contains `python.exe`
+**Solution:** Make sure `./python311/` folder exists and contains `python.exe`
 
 ### Issue: "Module not found"
 **Solution:** Reinstall packages in embedded Python
@@ -376,13 +376,13 @@ Before distributing:
 
 When you update your app:
 
-1. Modify `app/main.py`
+1. Modify `./app/main.py`
 2. Update version in README
 3. Test changes
 4. Repackage and redistribute
 
 Users can:
-- Replace only `app/main.py` (quick update)
+- Replace only `./app/main.py` (quick update)
 - Or download full new package
 
 ---

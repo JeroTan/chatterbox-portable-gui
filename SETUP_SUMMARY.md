@@ -78,7 +78,7 @@ Successfully installed the following packages:
 ### 5. Files Created
 
 ```
-chatterbox-codebase/
+chatterbox-portable-gui/
 ├── .gitignore              # Excludes .venv, models, cache files
 ├── README.md               # Complete documentation
 ├── requirements.txt        # Simplified dependencies (installs everything)
@@ -114,8 +114,8 @@ chatterbox-codebase/
 ### For Fresh Clone:
 ```powershell
 # Clone and setup
-git clone <your-repo-url>
-cd chatterbox-codebase
+git clone https://github.com/JeroTan/chatterbox-portable-gui.git
+cd chatterbox-portable-gui
 py -3.11 setup.py
 ```
 
@@ -142,8 +142,8 @@ pip install chatterbox-tts
 ### New team member joining:
 ```powershell
 # 1. Clone repo
-git clone <repo-url>
-cd chatterbox-codebase
+git clone https://github.com/JeroTan/chatterbox-portable-gui.git
+cd chatterbox-portable-gui
 
 # 2. Run automated setup
 py -3.11 setup.py
