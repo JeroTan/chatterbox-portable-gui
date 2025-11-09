@@ -6,6 +6,43 @@ A desktop Text-to-Speech application using Chatterbox TTS, created to generate c
 
 ![Chatterbox TTS GUI Screenshot](src/assets/screenshot.png)
 
+---
+
+## 📥 Download Portable Version (No Python Required)
+
+**For end users who don't want to install Python or dependencies:**
+
+### [🔽 Download Chatterbox GUI v1.0 (2.57 GB)](https://www.mediafire.com/file/9ys3vl5wzi2pgur/chatterbox-gui.exe/file)
+
+**System Requirements:**
+- Windows 10/11 (64-bit)
+- ~5 GB free disk space (2.57 GB for exe + 2-3 GB for AI models on first run)
+- Internet connection (first launch only, to download AI models)
+
+**How to Use:**
+1. Click the download link above
+2. Download `chatterbox-gui.exe` from MediaFire
+3. Run `chatterbox-gui.exe` (no installation needed)
+4. First launch will download AI models automatically (~2-3 GB, one-time only)
+5. Start generating voices!
+
+**Features Included:**
+- ✅ All dependencies embedded (PyTorch, transformers, etc.)
+- ✅ 23 language support
+- ✅ 256+ predefined voice samples
+- ✅ Custom voice cloning
+- ✅ 20 emotion presets
+- ✅ Real-time audio preview
+- ✅ Console window for debugging
+
+**Note:** This is a standalone executable. Your antivirus might scan it on first run - this is normal for large executables.
+
+---
+
+## 🛠️ For Developers (Build from Source)
+
+If you want to modify the code or build from source:
+
 ## 📋 Prerequisites
 
 - **Python 3.11** (Required - NOT 3.12, 3.13, or 3.14)
