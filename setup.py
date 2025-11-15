@@ -113,7 +113,15 @@ def install_dependencies():
     print("\nStep 4/4: Installing chatterbox-tts and remaining dependencies...")
     print("This will take the longest (downloading PyTorch, Gradio, etc.)...")
     try:
-        subprocess.run([str(pip_exe), "install", "chatterbox-tts", "pydub", "python-dateutil"], check=True)
+        subprocess.run([
+            str(pip_exe), "install", 
+            "chatterbox-tts", 
+            "pydub", 
+            "python-dateutil", 
+            "sv-ttk", 
+            "pygame", 
+            "praat-parselmouth"
+        ], check=True)
         print("✅ Chatterbox TTS and all dependencies installed")
     except subprocess.CalledProcessError as e:
         print(f"❌ Failed to install chatterbox-tts: {e}")

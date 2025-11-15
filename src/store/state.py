@@ -38,6 +38,8 @@ class AppState:
         
         # Output settings
         self.output_folder: Path = Path("./output")
+        self.naming_prefix: str = ""  # Optional prefix for output filenames
+        self.export_format: str = "wav"  # Export format: "wav" or "mp3"
         
         # Appearance settings
         self.current_theme: str = "dark"  # "dark" or "light"
@@ -87,6 +89,8 @@ class AppState:
             "pitch": self.pitch,
             "emphasis": self.emphasis,
             "output_folder": str(self.output_folder),
+            "naming_prefix": self.naming_prefix,
+            "export_format": self.export_format,
             "current_theme": self.current_theme,
         }
     

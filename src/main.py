@@ -19,6 +19,7 @@ from components.text_input import TextInputComponent
 from components.language_selector import LanguageSelectorComponent
 from components.voice_selector import VoiceSelectorComponent
 from components.expression_controls import ExpressionControlsComponent
+from components.naming_scheme import NamingSchemeComponent
 from components.device_selector import DeviceSelector
 from components.loading_screen import LoadingScreen
 from components.audio_player import AudioPlayerComponent
@@ -164,9 +165,32 @@ class ChatterboxApp:
         output_frame = ttk.LabelFrame(right, text="Output", padding="10")
         output_frame.pack(fill=tk.X, pady=(0, 10))
         
+        # Folder path
+        ttk.Label(output_frame, text="Folder:").pack(anchor=tk.W)
         self.output_folder_var = tk.StringVar(value=str(OUTPUT_FOLDER))
         ttk.Entry(output_frame, textvariable=self.output_folder_var, state="readonly").pack(fill=tk.X, pady=(0, 5))
-        ttk.Button(output_frame, text="Browse...", command=self._browse_output_folder).pack(fill=tk.X)
+        ttk.Button(output_frame, text="Browse...", command=self._browse_output_folder).pack(fill=tk.X, pady=(0, 10))
+        
+        # Naming scheme
+        self.naming_scheme = NamingSchemeComponent(output_frame)
+        self.naming_scheme.frame.pack(fill=tk.X, pady=(0, 10))
+        
+        # Export format selector
+        ttk.Label(output_frame, text="Export Format:").pack(anchor=tk.W)
+        self.export_format_var = tk.StringVar(value=app_state.export_format)
+        format_frame = ttk.Frame(output_frame)
+        format_frame.pack(fill=tk.X)
+        
+        formats = [("WAV", "wav"), ("MP3", "mp3")]
+        for text, value in formats:
+            rb = ttk.Radiobutton(
+                format_frame,
+                text=text,
+                value=value,
+                variable=self.export_format_var,
+                command=self._on_format_change
+            )
+            rb.pack(side=tk.LEFT, padx=(0, 10))
         
         # Generate button
         self.generate_btn = ttk.Button(right, text="🎤 Generate (Enter)", command=self._generate_audio)
@@ -268,6 +292,14 @@ class ChatterboxApp:
             if hasattr(self, 'output_folder_var'):
                 self.output_folder_var.set(str(app_state.output_folder))
             
+            # Update naming scheme
+            if hasattr(self, 'naming_scheme'):
+                self.naming_scheme.set_prefix(app_state.naming_prefix)
+            
+            # Update export format
+            if hasattr(self, 'export_format_var'):
+                self.export_format_var.set(app_state.export_format)
+            
             # Update theme
             self._apply_theme()
             
@@ -332,8 +364,9 @@ class ChatterboxApp:
         self.status_label.config(text="Generating... 0%")
         self.root.update()
         
-        # Use temporary file for preview
-        temp_file = Path(tempfile.gettempdir()) / f"chatterbox_preview_{generate_audio_filename(text)}"
+        # Use temporary file for preview (without prefix)
+        temp_filename = f"chatterbox_preview_{generate_audio_filename(text)}"
+        temp_file = Path(tempfile.gettempdir()) / temp_filename
         
         def progress_callback(percentage, status):
             """Update UI with progress - safe for threads"""
@@ -413,23 +446,26 @@ class ChatterboxApp:
         self.root.update()
         
         try:
-            # Generate filename from text or use default
-            default_filename = app_state.generated_audio_path.name
+            # Generate filename with prefix and format
+            text = app_state.text_input or "audio"
+            base_filename = generate_audio_filename(text, app_state.naming_prefix)
+            
+            # Change extension to match export format
+            filename = base_filename.rsplit('.', 1)[0] + f".{app_state.export_format}"
             
             # Use the output folder directly
             output_folder = Path(self.output_folder_var.get())
-            export_path = output_folder / default_filename
+            export_path = output_folder / filename
             
             # If file exists, add number suffix
             counter = 1
             while export_path.exists():
-                stem = default_filename.rsplit('.', 1)[0]
-                ext = default_filename.rsplit('.', 1)[1] if '.' in default_filename else 'wav'
-                export_path = output_folder / f"{stem}_{counter}.{ext}"
+                stem = base_filename.rsplit('.', 1)[0]
+                export_path = output_folder / f"{stem}_{counter}.{app_state.export_format}"
                 counter += 1
             
-            # Copy temp file to output folder
-            export_audio(app_state.generated_audio_path, export_path)
+            # Export with selected format
+            export_audio(app_state.generated_audio_path, export_path, app_state.export_format)
             
             self.status_label.config(text=f"✅ Exported: {export_path.name}")
             
@@ -488,6 +524,11 @@ class ChatterboxApp:
         """Handle theme change"""
         app_state.update(current_theme=theme_name)
         self._apply_theme()
+    
+    def _on_format_change(self):
+        """Handle export format change"""
+        format_value = self.export_format_var.get()
+        app_state.update(export_format=format_value)
     
     def _apply_theme(self):
         """Apply current theme to all components"""

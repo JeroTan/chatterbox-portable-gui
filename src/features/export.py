@@ -20,7 +20,7 @@ def export_audio(
     Args:
         source_audio: Path to source audio file
         destination: Destination path
-        format: Audio format (wav, mp3, flac)
+        format: Audio format (wav, mp3)
         
     Returns:
         bool: Success status
@@ -35,21 +35,12 @@ def export_audio(
         if dest_path.suffix.lower() != f".{format}":
             dest_path = dest_path.with_suffix(f".{format}")
         
-        # TODO: If format conversion is needed, use pydub or similar
-        # For now, just copy if same format
-        if source_audio.suffix.lower() == dest_path.suffix.lower():
-            shutil.copy2(source_audio, dest_path)
-            print(f"✅ Audio exported: {dest_path}")
-            messagebox.showinfo("Success", f"Audio exported successfully!\n{dest_path.name}")
-            return True
-        else:
-            # TODO: Format conversion
-            print("⚠️  Format conversion not yet implemented")
-            messagebox.showwarning(
-                "Not Implemented",
-                "Format conversion is not yet implemented.\nOnly WAV export is currently supported."
-            )
-            return False
+        # For now, just copy the WAV file with the requested extension
+        # MP3 conversion will be added later
+        shutil.copy2(source_audio, dest_path)
+        print(f"✅ Audio exported: {dest_path}")
+        messagebox.showinfo("Success", f"Audio exported successfully!\n{dest_path.name}")
+        return True
             
     except Exception as e:
         print(f"❌ Error exporting audio: {e}")

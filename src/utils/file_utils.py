@@ -56,13 +56,14 @@ def load_project_from_file(file_path: Path) -> Optional[Dict[str, Any]]:
         return None
 
 
-def generate_audio_filename(text: str) -> str:
+def generate_audio_filename(text: str, prefix: str = "") -> str:
     """
     Generate filename from text and timestamp
-    Format: YYYYMMDD_HHMMSS_first_5_words.wav
+    Format: [prefix_]YYYYMMDD_HHMMSS_first_5_words.wav
     
     Args:
         text: Input text
+        prefix: Optional prefix to add to filename
         
     Returns:
         str: Generated filename
@@ -79,6 +80,12 @@ def generate_audio_filename(text: str) -> str:
     # Limit length
     if len(words_part) > 50:
         words_part = words_part[:50]
+    
+    # Add prefix if provided
+    if prefix:
+        # Clean prefix
+        clean_prefix = "".join(c if c.isalnum() or c == "_" else "" for c in prefix)
+        return f"{clean_prefix}_{timestamp}_{words_part}.wav"
     
     return f"{timestamp}_{words_part}.wav"
 
