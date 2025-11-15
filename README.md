@@ -329,15 +329,26 @@ Generate audio in 23 languages:
 - **Auto-save indicator** - Track unsaved changes
 - **Keyboard shortcuts** - Ctrl+S (Save), Ctrl+O (Open), Ctrl+N (New)
 
-#### 8. Preview
+#### 8. Naming Scheme & Export Options
+- **Custom Prefix** - Add custom prefix to exported filenames
+  - Example: `character_john_20251115_143025_hello_world.wav`
+  - Format: `[prefix_]YYYYMMDD_HHMMSS_first_5_words.wav`
+  - Clear button to remove prefix
+  - Real-time filename preview
+- **Export Format Selector** - Choose output format
+  - WAV (lossless, default)
+  - MP3 (coming soon - currently saves as WAV with .mp3 extension)
+  - Format preference saved with projects
+
+#### 9. Preview
 - Play/Pause toggle button
 - Audio scrubber with millisecond precision (M:SS.mmm)
 - Click-to-seek and drag scrubber
 - Real-time position updates
 
-#### 9. Project Management
+#### 10. Output Management
 - Saves to `output/` folder automatically
-- Smart naming: `audio_1.wav`, `audio_2.wav`, etc.
+- Smart naming with custom prefix support
 - Temporary files cleaned up automatically
 
 ### For End Users (Portable Distribution)
@@ -421,6 +432,14 @@ reference_voices/
 ```
 
 ## 📝 Development History
+
+### File Naming & Export Format (November 14-15, 2025)
+1. ✅ Added custom prefix support for output filenames
+2. ✅ Created naming scheme component with real-time preview
+3. ✅ Implemented export format selector (WAV/MP3)
+4. ✅ State management for naming_prefix and export_format
+5. ✅ Simplified export without FFmpeg dependency (MP3 coming later)
+6. ✅ Format preference persists in project files
 
 ### Dark Mode & UI Polish (November 8, 2025)
 1. ✅ Implemented professional dark mode using sv-ttk (Sun Valley theme)
