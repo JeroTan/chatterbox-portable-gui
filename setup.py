@@ -100,7 +100,7 @@ def install_dependencies():
         return False
     
     # Install pkuseg without build isolation
-    print("\nStep 3/4: Installing pkuseg...")
+    print("\nStep 3/5: Installing pkuseg...")
     try:
         subprocess.run([str(pip_exe), "install", "--no-build-isolation", "pkuseg==0.0.25"], check=True)
         print("✅ Pkuseg installed")
@@ -109,9 +109,31 @@ def install_dependencies():
         print("Make sure you have Microsoft C++ Build Tools installed!")
         return False
     
+    # Install PyTorch with CUDA support
+    print("\nStep 4/5: Installing PyTorch with CUDA 12.1 support...")
+    print("This may take a while (downloading ~2 GB)...")
+    try:
+        subprocess.run([
+            str(pip_exe), "install", 
+            "torch", 
+            "torchaudio", 
+            "--index-url", 
+            "https://download.pytorch.org/whl/cu121"
+        ], check=True)
+        print("✅ PyTorch with CUDA support installed")
+    except subprocess.CalledProcessError as e:
+        print(f"⚠️  Warning: Failed to install PyTorch with CUDA: {e}")
+        print("Falling back to CPU-only PyTorch...")
+        try:
+            subprocess.run([str(pip_exe), "install", "torch", "torchaudio"], check=True)
+            print("✅ PyTorch (CPU-only) installed")
+        except subprocess.CalledProcessError as e2:
+            print(f"❌ Failed to install PyTorch: {e2}")
+            return False
+    
     # Install chatterbox-tts and remaining dependencies
-    print("\nStep 4/4: Installing chatterbox-tts and remaining dependencies...")
-    print("This will take the longest (downloading PyTorch, Gradio, etc.)...")
+    print("\nStep 5/5: Installing chatterbox-tts and remaining dependencies...")
+    print("This will download Gradio and other packages...")
     try:
         subprocess.run([
             str(pip_exe), "install", 

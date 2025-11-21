@@ -20,8 +20,6 @@ class NamingSchemeComponent:
         
         # Load initial value from state
         self.prefix_entry.insert(0, app_state.naming_prefix)
-        
-        print("✅ Naming Scheme Component initialized")
     
     def _create_widgets(self):
         """Create the naming scheme UI elements"""

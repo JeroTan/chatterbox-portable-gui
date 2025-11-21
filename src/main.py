@@ -167,7 +167,7 @@ class ChatterboxApp:
         
         # Folder path
         ttk.Label(output_frame, text="Folder:").pack(anchor=tk.W)
-        self.output_folder_var = tk.StringVar(value=str(OUTPUT_FOLDER))
+        self.output_folder_var = tk.StringVar(value=str(app_state.output_folder))
         ttk.Entry(output_frame, textvariable=self.output_folder_var, state="readonly").pack(fill=tk.X, pady=(0, 5))
         ttk.Button(output_frame, text="Browse...", command=self._browse_output_folder).pack(fill=tk.X, pady=(0, 10))
         

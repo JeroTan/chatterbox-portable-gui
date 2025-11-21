@@ -10,9 +10,20 @@ Write-Host "  Chatterbox TTS - Executable Builder" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Activate virtual environment
-Write-Host "[*] Activating virtual environment..." -ForegroundColor Yellow
-& ".\.venv\Scripts\Activate.ps1"
+# Check if virtual environment exists
+if (-not (Test-Path ".\.venv\Scripts\python.exe")) {
+    Write-Host "[-] Error: Virtual environment not found!" -ForegroundColor Red
+    Write-Host "    Please run: .\run.ps1 setup" -ForegroundColor Yellow
+    exit 1
+}
+
+# Use virtual environment Python
+$python_exe = ".\.venv\Scripts\python.exe"
+$pip_exe = ".\.venv\Scripts\pip.exe"
+
+Write-Host "[*] Using virtual environment Python" -ForegroundColor Yellow
+& $python_exe --version
+Write-Host ""
 
 if ($Clean) {
     Write-Host "[*] Cleaning previous builds..." -ForegroundColor Yellow
@@ -23,10 +34,10 @@ if ($Clean) {
 
 # Check if PyInstaller is installed
 Write-Host "[*] Checking PyInstaller..." -ForegroundColor Yellow
-python -c "import PyInstaller" 2>$null
+& $python_exe -c "import PyInstaller" 2>$null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[*] Installing PyInstaller..." -ForegroundColor Yellow
-    pip install pyinstaller
+    & $pip_exe install pyinstaller
 }
 Write-Host "[+] PyInstaller ready" -ForegroundColor Green
 Write-Host ""
@@ -35,7 +46,7 @@ Write-Host ""
 Write-Host "[*] Building executable..." -ForegroundColor Yellow
 Write-Host "    This will take 15-25 minutes..." -ForegroundColor Gray
 Write-Host ""
-python build_portable.py
+& $python_exe build_portable.py
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""

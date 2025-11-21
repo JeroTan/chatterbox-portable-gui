@@ -5,6 +5,13 @@ Similar to Redux/Zustand in JavaScript
 
 from typing import Optional, Dict, Any
 from pathlib import Path
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.config import OUTPUT_FOLDER
 
 
 class AppState:
@@ -37,7 +44,7 @@ class AppState:
         self.emphasis: float = 0.90
         
         # Output settings
-        self.output_folder: Path = Path("./output")
+        self.output_folder: Path = OUTPUT_FOLDER
         self.naming_prefix: str = ""  # Optional prefix for output filenames
         self.export_format: str = "wav"  # Export format: "wav" or "mp3"
         

@@ -184,9 +184,11 @@ def build_executable(spec_file):
     
     try:
         # Build single-file executable directly to build folder
+        # Use sys.executable to ensure we use the same Python environment
         subprocess.run(
             [
-                "pyinstaller",
+                sys.executable,
+                "-m", "PyInstaller",
                 "--clean",
                 "--distpath", str(BUILD_DIR),
                 "--workpath", str(BUILD_DIR / "work"),
